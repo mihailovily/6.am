@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ru" class="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#08090b">
+    <meta name="description" content="6.am — open-source экосистема для продуктивности. Часы, секундомер и настраиваемый помодоро.">
+    <title>6.am — Время</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20fill%3D%22%23000000%22%2F%3E%3C%2Fsvg%3E%0A" type="image/svg+xml">
+    <style>:root {
+  color-scheme: dark;
+  --background: #08090b;
+  --foreground: #f0f1f3;
+  --panel: #0d0f11;
+  --panel-alt: #111417;
+  --primary: #e7edf1;
+  --muted: #23272b;
+  --muted-foreground: #a0a5ad;
+  --border: #292d32;
+  --ring: #bbcdda;
+}
+
+* { box-sizing: border-box; border-color: var(--border); }
+html { background: var(--background); }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, sans-serif; font-size: 16px; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button, a, input { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--ring); outline-offset: 5px; }
+[hidden] { display: none !important; }
+
+.site-shell { max-width: 1440px; min-height: 100svh; margin: auto; padding: 0 5.5%; display: flex; flex-direction: column; }
+.site-header { display: flex; align-items: center; justify-content: space-between; min-height: 108px; gap: 20px; border-bottom: 1px solid var(--border); }
+.wordmark { display: flex; align-items: center; gap: 12px; color: var(--foreground); text-decoration: none; font-weight: 600; font-size: 1.5rem; letter-spacing: -.06em; }
+.wordmark svg { width: 26px; height: 26px; fill: none; stroke: #c8d4dd; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; }
+.wordmark-dot { color: #a7bfce; }
+.header-note { color: var(--muted-foreground); font-size: .875rem; }
+main { flex: 1; }
+.navigation { display: flex; align-items: center; justify-content: space-between; margin: 38px 0 28px; gap: 20px; }
+.section-code, .eyebrow { color: #a8adb5; font-family: Consolas, monospace; font-size: .75rem; letter-spacing: .15em; }
+.mode-tabs { display: flex; gap: 8px; }
+.mode-tab { min-height: 50px; padding: 12px 21px; display: inline-flex; align-items: center; gap: 9px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: #a0a5ad; font-size: .875rem; }
+.mode-tab svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.mode-tab[aria-selected="true"] { background: #1b2025; border-color: #353d44; color: #edf2f6; }
+.mode-tab:hover { background: #15191d; color: #edf2f6; }
+.tab-dot { width: 5px; height: 5px; border-radius: 50%; background: #bcd1df; }
+
+.work-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+.timer-panel { min-width: 0; min-height: 580px; padding: 28px 32px 24px; display: flex; flex-direction: column; background: var(--panel); }
+.panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.status { display: flex; align-items: center; gap: 8px; color: #a2a9b1; font-size: .8125rem; }
+.status i { width: 5px; height: 5px; border-radius: 50%; background: #a2a9b1; }
+.status.running { color: #c0d5e3; }
+.status.running i { background: #c0d5e3; }
+.timer-center { flex: 1; padding: 40px 0 38px; text-align: center; }
+h1 { margin: 0 0 26px; color: #c1c7ce; font-size: 1.25rem; font-weight: 400; letter-spacing: -.025em; }
+.phase-choice { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.phase-button { min-height: 44px; padding: 8px 12px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #a5aeb7; font-size: .875rem; }
+.phase-button.selected { border-color: #3b454e; background: #20262b; color: #e6edf3; }
+.phase-button:hover { background: #181e23; }
+.timer-digits { color: var(--foreground); font-variant-numeric: tabular-nums; font-size: clamp(5rem, 10.1vw, 9rem); font-weight: 300; letter-spacing: -.065em; line-height: 1.35; white-space: nowrap; }
+.timer-digits > span { color: #69727b; }
+.session-label { color: #bbc6ce; font-family: Consolas, monospace; font-size: .75rem; letter-spacing: .18em; }
+.session-label span { color: #9099a2; }
+.timer-actions { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 32px; }
+.primary-button { min-width: 200px; min-height: 54px; padding: 14px 26px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; border: 1px solid var(--primary); border-radius: 3px; background: var(--primary); color: #111518; font-size: .9375rem; font-weight: 500; }
+.primary-button:hover { background: #fff; }
+.primary-button svg, .icon-button svg, .settings-heading svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.primary-button svg { fill: currentColor; stroke: currentColor; }
+.icon-button, .text-button { min-height: 48px; border: 1px solid #303840; border-radius: 3px; background: transparent; color: #a6b0b9; }
+.icon-button { min-width: 48px; padding: 10px; display: inline-flex; align-items: center; justify-content: center; }
+.text-button { padding: 8px 12px; color: #d0d9e0; }
+.timer-bottom { width: 100%; max-width: 480px; margin: auto; }
+.timer-bottom > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: #a5aeb8; font-size: .8125rem; }
+.progress-track { height: 2px; background: #30353a; }
+.progress-indicator { width: 0; height: 100%; background: #afc3d1; transition: none; }
+.session-marks { display: flex; justify-content: center; gap: 7px; margin-top: 25px; }
+.session-marks b { width: 22px; height: 3px; background: #30373e; }
+.session-marks b.complete { background: #c4d7e4; }
+.cycle-caption { margin: 10px 0 0; color: #99a5af; font-size: .75rem; text-align: center; }
+.completion-notice { min-height: 22px; margin: 18px 0 0; color: #b9cedc; font-size: .875rem; line-height: 1.6; }
+
+.settings-panel { padding: 30px 26px; border-left: 1px solid var(--border); background: var(--panel-alt); }
+.settings-heading { display: flex; align-items: center; gap: 10px; font-size: .875rem; }
+.settings-heading svg { color: #adb9c4; }
+h2 { margin: 0; font-size: 1rem; font-weight: 500; }
+.settings-intro { margin: 9px 0 28px; color: #a0a8b1; font-size: .875rem; line-height: 1.6; }
+.field-stack { display: flex; flex-direction: column; gap: 19px; }
+.number-field { display: block; color: #c1c8d0; font-size: .875rem; }
+.number-field > span { display: block; margin-bottom: 9px; }
+.number-field > div { display: flex; align-items: center; overflow: hidden; border: 1px solid #353b43; border-radius: 3px; background: #0d1013; }
+.number-field input { width: 100%; min-width: 0; min-height: 45px; padding: 11px 12px; border: 0; outline: 0; background: transparent; color: #edf2f5; font-family: Consolas, monospace; font-size: 1rem; }
+.number-field > div > span { padding: 0 12px; color: #929da8; font-size: .8125rem; }
+.settings-note { margin: 8px 0 0; color: #a0a8b1; font-size: .8125rem; line-height: 1.6; }
+.settings-divider { height: 1px; margin: 25px 0; background: var(--border); }
+.toggle-row { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.toggle-row label { font-size: .875rem; }
+.switch { position: relative; width: 42px; height: 24px; margin: 0; appearance: none; border: 1px solid #4a535c; border-radius: 99px; background: #20252b; cursor: pointer; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #9aa6b0; transition: transform .15s ease, background .15s ease; }
+.switch:checked { border-color: #b9cad5; background: #afc3d1; }
+.switch:checked::after { transform: translateX(18px); background: #111518; }
+.settings-apply { width: 100%; margin-top: 22px; }
+.feedback { min-height: 22px; margin: 12px 0 0; color: #c7d7e1; font-size: .875rem; line-height: 1.6; }
+.error { color: #e0a7a7; }
+.background-note { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+.alternate-panel { min-height: 580px; padding: 32px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel); text-align: center; }
+.alternate-panel h1 { margin-top: 45px; }
+.clock-digits { margin: 30px auto 15px; font-size: clamp(4rem, 12vw, 10.5rem); }
+.clock-meta { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; color: #b6c2cd; font-size: .875rem; }
+.date-label { margin-bottom: 16px; color: #c1cbd4; font-size: 1rem; }
+.clock-rule { max-width: 600px; height: 20px; margin: 55px auto 0; display: flex; align-items: center; gap: 6px; }
+.clock-rule i { flex: 1; height: 8px; background: #353e47; }
+.clock-rule i:nth-child(5n + 1) { height: 20px; }
+.clock-rule i.elapsed { background: #bed0df; }
+.stopwatch-digits { margin-top: 48px; font-size: clamp(3rem, 8.5vw, 7.5rem); }
+.hundredths { color: #9eaeba; font-size: .35em; letter-spacing: -.03em; }
+.empty-note { margin-top: 28px; color: #9da7b0; font-size: .875rem; }
+.laps { max-width: 560px; max-height: 360px; margin: 32px auto 24px; overflow: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 13px 8px; border-top: 1px solid var(--border); text-align: left; }
+th { color: #b0bac4; font-weight: 500; }
+td { color: #c0cbd4; font-family: Consolas, monospace; font-size: .8125rem; }
+.alternate-note { margin-top: 25px; }
+footer { min-height: 108px; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: #969da5; font-size: .75rem; }
+footer span:last-child { font-family: Consolas, monospace; font-size: .75rem; letter-spacing: .13em; }
+
+@media (max-width: 1050px) {
+  .site-shell { padding: 0 28px; }
+  .work-grid { grid-template-columns: minmax(0, 1fr) 290px; }
+  .timer-panel { padding: 25px 20px; }
+  .settings-panel { padding: 28px 22px; }
+  .timer-digits { font-size: clamp(4.5rem, 10vw, 8rem); }
+}
+
+@media (max-width: 760px) {
+  .site-shell { padding: 0 20px; }
+  .site-header { min-height: 80px; }
+  .wordmark { font-size: 1.35rem; }
+  .header-note { font-size: .75rem; }
+  .navigation { margin: 24px 0 20px; }
+  .section-code { display: none; }
+  .mode-tabs { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .mode-tab { padding: 10px 8px; justify-content: center; min-height: 48px; gap: 7px; }
+  .work-grid { grid-template-columns: 1fr; }
+  .timer-panel { min-height: 485px; padding: 22px 20px; }
+  .timer-center { padding: 32px 0; }
+  .timer-digits { font-size: clamp(5rem, 19vw, 8rem); }
+  .settings-panel { padding: 26px 24px; border-top: 1px solid var(--border); border-left: 0; }
+  .field-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 16px; }
+  footer { align-items: flex-start; min-height: 100px; padding: 28px 0; }
+  footer span:last-child { max-width: 100px; text-align: right; line-height: 1.7; }
+  .alternate-panel { min-height: 480px; padding: 24px 18px; }
+  .clock-digits { margin-top: 55px; font-size: clamp(2.4rem, 10.3vw, 5.5rem); }
+  .stopwatch-digits { margin-top: 65px; font-size: clamp(2.2rem, 9.7vw, 5.5rem); }
+}
+
+@media (max-width: 380px) {
+  .site-shell { padding: 0 12px; }
+  .header-note { display: none; }
+  .mode-tab { flex-direction: column; }
+  .panel-top { align-items: flex-start; }
+  .timer-panel { padding: 20px 12px; }
+  .phase-button { padding: 7px; font-size: .8125rem; }
+  .primary-button { min-width: 150px; padding: 12px 18px; }
+  .settings-panel { padding: 24px 18px; }
+  .field-stack { gap: 18px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="wordmark" href="index.html" aria-label="6.am — главная">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9 4.9 19.1M12 4.5 9.8 2.3M12 4.5l2.2-2.2M12 19.5l-2.2 2.2M12 19.5l2.2 2.2M4.5 12l-2.2-2.2M4.5 12l-2.2 2.2M19.5 12l2.2-2.2M19.5 12l2.2 2.2" /></svg>
+          <span>6<span class="wordmark-dot">.</span>am</span>
+        </a>
+        <span class="header-note">open-source для продуктивности</span>
+      </header>
+
+      <main>
+        <div class="navigation">
+          <div class="mode-tabs" role="tablist" aria-label="Режим времени">
+            <button class="mode-tab" role="tab" aria-selected="false" data-view="clock">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              Часы
+            </button>
+            <button class="mode-tab" role="tab" aria-selected="false" data-view="stopwatch">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7" /><path d="M12 2v3M9 2h6M17 8l2-2M12 10v3l2 1" /></svg>
+              Секундомер<span class="tab-dot" data-running="stopwatch" hidden></span>
+            </button>
+            <button class="mode-tab" role="tab" aria-selected="true" data-view="pomodoro">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4" /></svg>
+              Помодоро<span class="tab-dot" data-running="pomodoro" hidden></span>
+            </button>
+          </div>
+          <span class="section-code" id="section-code">FOCUS / 03</span>
+        </div>
+
+        <section class="view-panel" data-panel="pomodoro" role="tabpanel">
+          <div class="work-grid">
+            <section class="timer-panel" aria-label="Помодоро">
+              <div class="panel-top"><span class="eyebrow">ПОМОДОРО</span><span class="status" id="pomodoro-status"><i></i>Готов к старту</span></div>
+              <div class="timer-center">
+                <h1 id="pomodoro-heading">Время сосредоточиться.</h1>
+                <div class="phase-choice" role="group" aria-label="Этап помодоро">
+                  <button class="phase-button selected" data-phase="focus">Фокус</button>
+                  <button class="phase-button" data-phase="short">Короткий отдых</button>
+                  <button class="phase-button" data-phase="long">Длинный отдых</button>
+                </div>
+                <div class="timer-digits" id="pomodoro-digits" role="timer" aria-label="Осталось 25:00">25<span>:</span>00</div>
+                <div class="session-label" id="session-label">СЕССИЯ 01 <span>/ 04</span></div>
+                <div class="timer-actions">
+                  <button class="icon-button" id="pomodoro-reset" aria-label="Сбросить текущий этап" title="Сбросить текущий этап"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6" /></svg></button>
+                  <button class="primary-button" id="pomodoro-toggle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg><span>Начать фокус</span></button>
+                </div>
+                <p class="completion-notice" id="pomodoro-notice" role="status"></p>
+              </div>
+              <div class="timer-bottom">
+                <div><span id="progress-label">Фокус</span><span id="progress-value">25 мин · 0%</span></div>
+                <div class="progress-track"><div class="progress-indicator" id="progress-indicator"></div></div>
+                <div class="session-marks" id="session-marks" aria-label="Завершено в цикле: 0 из 4"></div>
+                <p class="cycle-caption">До длинного отдыха</p>
+              </div>
+            </section>
+
+            <aside class="settings-panel">
+              <div class="settings-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M15.5 8.5a5 5 0 1 0 0 7" /></svg><h2>Твой ритм</h2></div>
+              <p class="settings-intro">Настрой время под свою задачу.</p>
+              <form id="settings-form">
+                <div class="field-stack">
+                  <label class="number-field"><span>Фокус</span><div><input id="focus-input" type="number" min="1" max="180" step="1" required><span>мин</span></div></label>
+                  <label class="number-field"><span>Короткий отдых</span><div><input id="short-input" type="number" min="1" max="180" step="1" required><span>мин</span></div></label>
+                  <label class="number-field"><span>Длинный отдых</span><div><input id="long-input" type="number" min="1" max="180" step="1" required><span>мин</span></div></label>
+                  <label class="number-field"><span>Сессий до длинного отдыха</span><div><input id="cycles-input" type="number" min="1" max="12" step="1" required><span>шт.</span></div></label>
+                </div>
+                <p class="settings-note" id="settings-limits">1–180 минут · 1–12 сессий</p>
+                <div class="settings-divider"></div>
+                <div class="toggle-row"><label for="sound-input">Звуковой сигнал</label><input class="switch" id="sound-input" type="checkbox"></div>
+                <div class="toggle-row"><label for="auto-start-input">Автозапуск этапов</label><input class="switch" id="auto-start-input" type="checkbox"></div>
+                <button class="text-button settings-apply" type="submit">Применить настройки</button>
+                <p class="settings-note">Применение начнёт новый цикл. Переключение этапа сбрасывает его отсчёт.</p>
+                <p class="feedback" id="settings-feedback" role="status"></p>
+                <p class="feedback error" id="settings-error" role="alert"></p>
+              </form>
+              <p class="settings-note background-note">Оставь страницу открытой. При блокировке экрана браузер может задержать сигнал; время пересчитается при возвращении.</p>
+              <p class="feedback error" id="sound-issue" role="status"></p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view-panel" data-panel="clock" role="tabpanel" hidden>
+          <section class="alternate-panel">
+            <div class="panel-top"><span class="eyebrow">МЕСТНОЕ ВРЕМЯ</span><div class="toggle-row"><label for="clock-format">24 часа</label><input class="switch" id="clock-format" type="checkbox" checked></div></div>
+            <h1>Здесь. Сейчас.</h1>
+            <div class="timer-digits clock-digits" id="clock-digits" role="timer">--:--:--</div>
+            <p class="date-label" id="date-label">Местное время устройства</p>
+            <div class="clock-meta"><span id="time-zone"></span><span>Время устройства</span></div>
+            <div class="clock-rule" id="clock-rule" aria-hidden="true"></div>
+          </section>
+        </section>
+
+        <section class="view-panel" data-panel="stopwatch" role="tabpanel" hidden>
+          <section class="alternate-panel">
+            <div class="panel-top"><span class="eyebrow">СЕКУНДОМЕР</span><span class="status" id="stopwatch-status"><i></i>Готов к старту</span></div>
+            <h1>Каждая секунда на своём месте.</h1>
+            <div class="timer-digits stopwatch-digits" id="stopwatch-digits" role="timer">00:00:00<small class="hundredths">.00</small></div>
+            <div class="timer-actions">
+              <button class="icon-button" id="stopwatch-reset" disabled aria-label="Сбросить секундомер и круги" title="Сбросить секундомер и круги"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6" /></svg></button>
+              <button class="primary-button" id="stopwatch-toggle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg><span>Начать</span></button>
+              <button class="icon-button" id="stopwatch-lap" disabled aria-label="Записать круг" title="Записать круг"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 14 16M19 4 5 20" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg></button>
+            </div>
+            <p class="empty-note" id="laps-empty">Нажми на флажок, чтобы записать круг.</p>
+            <div class="laps" id="laps" hidden><table><thead><tr><th>Круг</th><th>Время круга</th><th>Всего</th></tr></thead><tbody id="laps-body"></tbody></table></div>
+            <p class="settings-note alternate-note">Секундомер продолжает работать при смене режима. Сброс удаляет круги.</p>
+          </section>
+        </section>
+      </main>
+
+      <footer><span>Меньше шума. Больше присутствия.</span><span>6.AM · TIME</span></footer>
+    </div>
+    <script>const DEFAULTS = { focus: 25, short: 5, long: 15, cycles: 4, sound: true, autoStart: false };
+const PREFERENCES_KEY = '6am-preferences';
+const LEGACY_PREFERENCES_KEY = 'winter-arc-preferences';
+const labels = { focus: 'Фокус', short: 'Короткий отдых', long: 'Длинный отдых' };
+const sections = { clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03' };
+
+const $ = selector => document.querySelector(selector);
+const pad = value => String(value).padStart(2, '0');
+const duration = phase => state.settings[phase] * 60000;
+const elapsed = (stopwatch, now) => stopwatch.accumulated + (stopwatch.startedAt === null ? 0 : Math.max(0, now - stopwatch.startedAt));
+const formatCountdown = milliseconds => {
+  const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
+};
+const formatElapsed = milliseconds => {
+  const seconds = Math.floor(Math.max(0, milliseconds) / 1000);
+  return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
+};
+
+function validSettings(value) {
+  return value && [value.focus, value.short, value.long].every(item => Number.isInteger(item) && item >= 1 && item <= 180)
+    && Number.isInteger(value.cycles) && value.cycles >= 1 && value.cycles <= 12
+    && typeof value.sound === 'boolean' && typeof value.autoStart === 'boolean';
+}
+
+function readSettings() {
+  try {
+    const raw = localStorage.getItem(PREFERENCES_KEY) || localStorage.getItem(LEGACY_PREFERENCES_KEY);
+    const saved = JSON.parse(raw || 'null');
+    return validSettings(saved) ? saved : { ...DEFAULTS };
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+function initialPomodoro() {
+  return { phase: 'focus', remaining: duration('focus'), deadline: null, completed: 0, events: 0, notice: '' };
+}
+
+const state = {
+  view: 'pomodoro',
+  now: Date.now(),
+  settings: readSettings(),
+  pomodoro: null,
+  stopwatch: { accumulated: 0, startedAt: null, laps: [] },
+};
+state.pomodoro = initialPomodoro();
+
+let audioContext = null;
+let stopwatchFrame = 0;
+
+function setStatus(element, text, running) {
+  element.classList.toggle('running', running);
+  element.innerHTML = `<i></i>${text}`;
+}
+
+function advancePomodoro(now) {
+  const timer = state.pomodoro;
+  if (timer.deadline === null) return;
+  let safety = 0;
+  while (timer.deadline !== null && timer.deadline <= now && safety++ < 10000) {
+    const wasFocus = timer.phase === 'focus';
+    timer.completed += wasFocus ? 1 : 0;
+    timer.phase = wasFocus ? (timer.completed % state.settings.cycles === 0 ? 'long' : 'short') : 'focus';
+    timer.remaining = duration(timer.phase);
+    timer.events += 1;
+    timer.deadline = state.settings.autoStart ? timer.deadline + duration(timer.phase) : null;
+    timer.notice = wasFocus ? 'Сессия завершена. Время отдохнуть.' : 'Отдых завершён. Можно возвращаться к работе.';
+  }
+  if (timer.deadline !== null && timer.deadline <= now) {
+    timer.deadline = null;
+    timer.notice = 'После долгого отсутствия таймер приостановлен.';
+  }
+  if (timer.deadline !== null) timer.remaining = Math.max(0, timer.deadline - now);
+}
+
+function renderTabs() {
+  document.querySelectorAll('[data-view]').forEach(button => {
+    button.setAttribute('aria-selected', String(button.dataset.view === state.view));
+  });
+  document.querySelectorAll('[data-panel]').forEach(panel => {
+    panel.hidden = panel.dataset.panel !== state.view;
+  });
+  $('#section-code').textContent = sections[state.view];
+  $('[data-running="stopwatch"]').hidden = state.stopwatch.startedAt === null;
+  $('[data-running="pomodoro"]').hidden = state.pomodoro.deadline === null;
+}
+
+function renderPomodoro() {
+  const timer = state.pomodoro;
+  const running = timer.deadline !== null;
+  const total = duration(timer.phase);
+  const completed = timer.completed % state.settings.cycles;
+  const displayCompleted = timer.phase === 'long' && completed === 0 && timer.completed > 0 ? state.settings.cycles : completed;
+  const session = timer.phase === 'focus' ? completed + 1 : completed || state.settings.cycles;
+  const progress = Math.min(100, Math.max(0, 100 * (1 - timer.remaining / total)));
+  const remaining = formatCountdown(timer.remaining);
+  const hasProgress = timer.remaining < total;
+  const status = running ? 'Идёт отсчёт' : hasProgress ? 'На паузе' : 'Готов к старту';
+  const heading = timer.phase === 'focus' ? 'Время сосредоточиться.' : 'Пауза тоже часть работы.';
+  const action = running ? 'Пауза' : hasProgress ? 'Продолжить' : timer.phase === 'focus' ? 'Начать фокус' : 'Начать отдых';
+
+  setStatus($('#pomodoro-status'), status, running);
+  $('#pomodoro-heading').textContent = heading;
+  $('#pomodoro-digits').innerHTML = `${remaining.split(':')[0]}<span>:</span>${remaining.split(':')[1]}`;
+  $('#pomodoro-digits').setAttribute('aria-label', `Осталось ${remaining}`);
+  $('#session-label').innerHTML = `СЕССИЯ ${pad(session)} <span>/ ${pad(state.settings.cycles)}</span>`;
+  $('#pomodoro-toggle').innerHTML = `${running ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg>'}<span>${action}</span>`;
+  $('#pomodoro-notice').textContent = timer.notice;
+  $('#progress-label').textContent = labels[timer.phase];
+  $('#progress-value').textContent = `${state.settings[timer.phase]} мин · ${Math.floor(progress)}%`;
+  $('#progress-indicator').style.width = `${progress}%`;
+  $('#session-marks').setAttribute('aria-label', `Завершено в цикле: ${displayCompleted} из ${state.settings.cycles}`);
+  $('#session-marks').innerHTML = Array.from({ length: state.settings.cycles }, (_, index) => `<b class="${index < displayCompleted ? 'complete' : ''}"></b>`).join('');
+  document.querySelectorAll('[data-phase]').forEach(button => button.classList.toggle('selected', button.dataset.phase === timer.phase));
+  document.title = running ? `${remaining} · ${labels[timer.phase]} — 6.am` : '6.am — Время';
+}
+
+function renderClock() {
+  const date = new Date(state.now);
+  const is24 = $('#clock-format').checked;
+  $('#clock-digits').textContent = date.toLocaleTimeString('ru-RU', { hour12: !is24, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  $('#date-label').textContent = date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  $('#time-zone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_', ' ');
+  $('#clock-rule').innerHTML = Array.from({ length: 60 }, (_, index) => `<i class="${index <= date.getSeconds() ? 'elapsed' : ''}"></i>`).join('');
+}
+
+function renderStopwatch() {
+  const timer = state.stopwatch;
+  const time = elapsed(timer, Date.now());
+  const running = timer.startedAt !== null;
+  setStatus($('#stopwatch-status'), running ? 'Идёт отсчёт' : time > 0 ? 'На паузе' : 'Готов к старту', running);
+  $('#stopwatch-digits').innerHTML = `${formatElapsed(time)}<small class="hundredths">.${pad(Math.floor(time % 1000 / 10))}</small>`;
+  $('#stopwatch-digits').setAttribute('aria-label', formatElapsed(time));
+  $('#stopwatch-toggle').innerHTML = `${running ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg>'}<span>${running ? 'Пауза' : time > 0 ? 'Продолжить' : 'Начать'}</span>`;
+  $('#stopwatch-reset').disabled = time === 0;
+  $('#stopwatch-lap').disabled = !running || timer.laps.length >= 100;
+  $('#laps-empty').hidden = timer.laps.length > 0;
+  $('#laps').hidden = timer.laps.length === 0;
+  $('#laps-body').innerHTML = timer.laps.map((lap, index) => ({ lap, index })).reverse().map(({ lap, index }) => {
+    const previous = timer.laps[index - 1] || 0;
+    return `<tr><td>${pad(index + 1)}</td><td>${formatElapsed(lap - previous)}.${pad(Math.floor((lap - previous) % 1000 / 10))}</td><td>${formatElapsed(lap)}.${pad(Math.floor(lap % 1000 / 10))}</td></tr>`;
+  }).join('');
+}
+
+function render() {
+  renderTabs();
+  renderPomodoro();
+  renderClock();
+  renderStopwatch();
+}
+
+function enableAudio() {
+  try {
+    if (!audioContext) {
+      const AudioConstructor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioConstructor) throw new Error('Audio unavailable');
+      audioContext = new AudioConstructor();
+    }
+    void audioContext.resume();
+  } catch {
+    $('#sound-issue').textContent = 'Звук недоступен. Завершение появится на экране.';
+  }
+}
+
+function playCompletionSound() {
+  if (!state.settings.sound || !audioContext) return;
+  try {
+    [0, .28, .56].forEach(offset => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.frequency.value = 660;
+      const start = audioContext.currentTime + offset;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(.13, start + .015);
+      gain.gain.exponentialRampToValueAtTime(.001, start + .22);
+      oscillator.start(start);
+      oscillator.stop(start + .24);
+    });
+  } catch {
+    $('#sound-issue').textContent = 'Не удалось воспроизвести сигнал. Сессия завершена.';
+  }
+}
+
+function tick() {
+  state.now = Date.now();
+  const events = state.pomodoro.events;
+  advancePomodoro(state.now);
+  if (state.pomodoro.events > events) playCompletionSound();
+  renderTabs();
+  renderPomodoro();
+  renderClock();
+  if (state.stopwatch.startedAt === null) renderStopwatch();
+}
+
+function updateStopwatchFrame() {
+  if (state.stopwatch.startedAt === null) {
+    stopwatchFrame = 0;
+    return;
+  }
+  renderStopwatch();
+  stopwatchFrame = window.requestAnimationFrame(updateStopwatchFrame);
+}
+
+function ensureStopwatchFrame() {
+  if (!stopwatchFrame) stopwatchFrame = window.requestAnimationFrame(updateStopwatchFrame);
+}
+
+function saveSettings() {
+  try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify(state.settings)); } catch { }
+}
+
+document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
+  state.view = button.dataset.view;
+  renderTabs();
+}));
+
+document.querySelectorAll('[data-phase]').forEach(button => button.addEventListener('click', () => {
+  state.pomodoro.phase = button.dataset.phase;
+  state.pomodoro.remaining = duration(state.pomodoro.phase);
+  state.pomodoro.deadline = null;
+  state.pomodoro.notice = '';
+  renderPomodoro();
+}));
+
+$('#pomodoro-toggle').addEventListener('click', () => {
+  const now = Date.now();
+  if (state.pomodoro.deadline !== null) {
+    state.pomodoro.remaining = Math.max(0, state.pomodoro.deadline - now);
+    state.pomodoro.deadline = null;
+  } else {
+    if (state.settings.sound) enableAudio();
+    state.pomodoro.deadline = now + state.pomodoro.remaining;
+    state.pomodoro.notice = '';
+  }
+  renderTabs();
+  renderPomodoro();
+});
+
+$('#pomodoro-reset').addEventListener('click', () => {
+  state.pomodoro.remaining = duration(state.pomodoro.phase);
+  state.pomodoro.deadline = null;
+  state.pomodoro.notice = '';
+  renderTabs();
+  renderPomodoro();
+});
+
+$('#stopwatch-toggle').addEventListener('click', () => {
+  if (state.stopwatch.startedAt !== null) {
+    state.stopwatch.accumulated = elapsed(state.stopwatch, Date.now());
+    state.stopwatch.startedAt = null;
+  } else {
+    state.stopwatch.startedAt = Date.now();
+    ensureStopwatchFrame();
+  }
+  renderTabs();
+  renderStopwatch();
+});
+
+$('#stopwatch-reset').addEventListener('click', () => {
+  state.stopwatch = { accumulated: 0, startedAt: null, laps: [] };
+  renderTabs();
+  renderStopwatch();
+});
+
+$('#stopwatch-lap').addEventListener('click', () => {
+  if (state.stopwatch.startedAt !== null && state.stopwatch.laps.length < 100) {
+    state.stopwatch.laps.push(elapsed(state.stopwatch, Date.now()));
+    renderStopwatch();
+  }
+});
+
+$('#clock-format').addEventListener('change', renderClock);
+
+$('#settings-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const settings = {
+    focus: Number($('#focus-input').value),
+    short: Number($('#short-input').value),
+    long: Number($('#long-input').value),
+    cycles: Number($('#cycles-input').value),
+    sound: $('#sound-input').checked,
+    autoStart: $('#auto-start-input').checked,
+  };
+  $('#settings-error').textContent = '';
+  if (!validSettings(settings)) {
+    $('#settings-feedback').textContent = '';
+    $('#settings-error').textContent = 'Укажи целые минуты от 1 до 180 и число сессий от 1 до 12.';
+    return;
+  }
+  state.settings = settings;
+  state.pomodoro = initialPomodoro();
+  saveSettings();
+  if (settings.sound) enableAudio();
+  $('#settings-feedback').textContent = 'Настройки сохранены на этом устройстве.';
+  render();
+});
+
+$('#focus-input').value = state.settings.focus;
+$('#short-input').value = state.settings.short;
+$('#long-input').value = state.settings.long;
+$('#cycles-input').value = state.settings.cycles;
+$('#sound-input').checked = state.settings.sound;
+$('#auto-start-input').checked = state.settings.autoStart;
+$('#clock-rule').innerHTML = '<i></i>'.repeat(60);
+document.addEventListener('visibilitychange', tick);
+window.addEventListener('pageshow', tick);
+window.setInterval(tick, 100);
+render();
+</script>
+  </body>
+</html>
