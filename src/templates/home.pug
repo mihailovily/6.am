@@ -1,0 +1,31 @@
+- var title = '6.am — Пространство для фокуса'
+- var description = '6.am — спокойная open-source экосистема для продуктивности.'
+- var footerText = 'Winter arc, one quiet step at a time.'
+- var footerCode = '6.AM · 2026'
+doctype html
+html(lang="ru", class="dark")
+  include _head.pug
+  body
+    .site-shell.home-shell
+      include _header.pug
+      main.home-main
+        p.eyebrow 6.AM / INDEX
+        h1.home-title Меньше шума.<br><span>Больше присутствия.</span>
+        p.home-intro Набор тихих инструментов для ясного начала дня и глубокой работы.
+        nav.service-list(aria-label="Сервисы 6.am")
+          a.service-card.service-card-active(href="/time.html")
+            span.service-index 01
+            span.service-copy
+              strong Время
+              small Часы · секундомер · помодоро
+            span.service-arrow(aria-hidden="true") ↗
+          each item, index in [{name: 'Задачи', description: 'Следующий модуль экосистемы'}, {name: 'Ритуалы', description: 'Место для повторяемого'}]
+            a.service-card.service-card-soon(href="#", aria-disabled="true", data-coming-soon)
+              span.service-index= `0${index + 2}`
+              span.service-copy
+                strong= item.name
+                small= item.description
+              span.service-status скоро
+        p.home-hint#home-hint(role="status") Открытый исходный код · сделано для спокойной работы
+      include _footer.pug
+    script(src="/src/scripts/home.js", defer)

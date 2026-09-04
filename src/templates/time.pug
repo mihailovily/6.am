@@ -1,0 +1,134 @@
+- var title = '6.am — Время'
+- var description = '6.am — часы, секундомер и настраиваемый помодоро.'
+- var footerText = 'Меньше шума. Больше присутствия.'
+- var footerCode = '6.AM · TIME'
+doctype html
+html(lang="ru", class="dark")
+  include _head.pug
+  body
+    .site-shell
+      include _header.pug
+      main
+        .navigation
+          .mode-tabs(role="tablist", aria-label="Режим времени")
+            a.mode-tab(href="#clock", role="tab", data-view="clock")
+              span.tab-icon(aria-hidden="true")
+                svg(viewBox="0 0 24 24")
+                  circle(cx="12", cy="12", r="9")
+                  path(d="M12 7v5l3 2")
+              | Часы
+            a.mode-tab(href="#stopwatch", role="tab", data-view="stopwatch")
+              span.tab-icon(aria-hidden="true")
+                svg(viewBox="0 0 24 24")
+                  circle(cx="12", cy="13", r="7")
+                  path(d="M12 2v4M9 2h6M17 8l2-2")
+              | Секундомер
+              span.tab-dot(data-running="stopwatch", hidden)
+            a.mode-tab(href="#pomodoro", role="tab", data-view="pomodoro")
+              span.tab-icon(aria-hidden="true")
+                svg(viewBox="0 0 24 24")
+                  path(d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4")
+              | Помодоро
+              span.tab-dot(data-running="pomodoro", hidden)
+          span.section-code#section-code FOCUS / 03
+
+        section.view-panel(data-panel="pomodoro", role="tabpanel")
+          .work-grid
+            section.timer-panel(aria-label="Помодоро")
+              .panel-top
+                span.eyebrow ПОМОДОРО
+                span.status#pomodoro-status
+                  i
+                  | Готов к старту
+              .timer-center
+                h1#pomodoro-heading Время сосредоточиться.
+                .phase-choice(role="group", aria-label="Этап помодоро")
+                  button.phase-button.selected(data-phase="focus") Фокус
+                  button.phase-button(data-phase="short") Короткий отдых
+                  button.phase-button(data-phase="long") Длинный отдых
+                .timer-digits#pomodoro-digits(role="timer")
+                  | 25
+                  span :
+                  | 00
+                .session-label#session-label СЕССИЯ 01 <span>/ 04</span>
+                .timer-actions
+                  button.icon-button#pomodoro-reset(aria-label="Сбросить текущий этап") ↺
+                  button.primary-button#pomodoro-toggle
+                    span Начать фокус
+                p.completion-notice#pomodoro-notice(role="status")
+              .timer-bottom
+                div
+                  span#progress-label Фокус
+                  span#progress-value 25 мин · 0%
+                .progress-track
+                  .progress-indicator#progress-indicator
+                .session-marks#session-marks(aria-label="Завершено в цикле: 0 из 4")
+                p.cycle-caption До длинного отдыха
+            aside.settings-panel
+              .settings-heading
+                span(aria-hidden="true") ✣
+                h2 Твой ритм
+              p.settings-intro Настрой время под свою задачу.
+              form#settings-form
+                .field-stack
+                  each field in [{id: 'focus', label: 'Фокус', unit: 'мин', max: 180}, {id: 'short', label: 'Короткий отдых', unit: 'мин', max: 180}, {id: 'long', label: 'Длинный отдых', unit: 'мин', max: 180}, {id: 'cycles', label: 'Сессий до длинного отдыха', unit: 'шт.', max: 12}]
+                    label.number-field
+                      span= field.label
+                      div
+                        input(id=field.id + '-input', type="number", min="1", max=field.max, required)
+                        span= field.unit
+                .settings-divider
+                .toggle-row
+                  label(for="sound-input") Звуковой сигнал
+                  input.switch#sound-input(type="checkbox")
+                .toggle-row
+                  label(for="auto-start-input") Автозапуск этапов
+                  input.switch#auto-start-input(type="checkbox")
+                button.text-button.settings-apply(type="submit") Применить настройки
+                p.feedback#settings-feedback(role="status")
+                p.feedback.error#settings-error(role="alert")
+              p.settings-note.background-note Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.
+
+        section.view-panel(data-panel="clock", role="tabpanel", hidden)
+          section.alternate-panel
+            .panel-top
+              span.eyebrow МЕСТНОЕ ВРЕМЯ
+              .toggle-row
+                label(for="clock-format") 24 часа
+                input.switch#clock-format(type="checkbox", checked)
+            h1 Здесь. Сейчас.
+            .timer-digits.clock-digits#clock-digits(role="timer") --:--:--
+            p.date-label#date-label Местное время устройства
+            .clock-meta
+              span#time-zone
+              span Время устройства
+            .clock-rule#clock-rule(aria-hidden="true")
+
+        section.view-panel(data-panel="stopwatch", role="tabpanel", hidden)
+          section.alternate-panel
+            .panel-top
+              span.eyebrow СЕКУНДОМЕР
+              span.status#stopwatch-status
+                i
+                | Готов к старту
+            h1 Каждая секунда на своём месте.
+            .timer-digits.stopwatch-digits#stopwatch-digits(role="timer")
+              | 00:00:00
+              small.hundredths .00
+            .timer-actions
+              button.icon-button#stopwatch-reset(disabled, aria-label="Сбросить секундомер") ↺
+              button.primary-button#stopwatch-toggle
+                span Начать
+              button.icon-button#stopwatch-lap(disabled, aria-label="Записать круг") ⚑
+            p.empty-note#laps-empty Нажми на флажок, чтобы записать круг.
+            .laps#laps(hidden)
+              table
+                thead
+                  tr
+                    th Круг
+                    th Время круга
+                    th Всего
+                tbody#laps-body
+            p.settings-note.alternate-note Секундомер продолжает работать при смене режима. Сброс удаляет круги.
+      include _footer.pug
+    script(src="/src/scripts/time.js", defer)
