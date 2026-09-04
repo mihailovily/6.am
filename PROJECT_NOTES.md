@@ -14,6 +14,8 @@
 - `/time.html` — часы, секундомер и помодоро;
 - `/time.html#clock`, `/time.html#stopwatch`, `/time.html#pomodoro` — прямые ссылки на режимы приложения времени.
 
+При открытии `/time.html` без hash по умолчанию активен режим `clock`. Hash сохраняет приоритет и позволяет сразу открыть любой другой режим.
+
 Исходные Vite entry-файлы находятся не в корне:
 
 ```text
@@ -30,11 +32,11 @@ src/templates/
   home.pug       разметка главной страницы
   time.pug       разметка приложения времени
   _head.pug      общий head: meta, title, stylesheet
-  _header.pug    общий логотип и header-note
-  _footer.pug    общий footer с локальными текстами страницы
+  _header.pug    общий логотип
+  _footer.pug    общий footer с названием проекта и ссылкой автора
 ```
 
-В `home.pug` и `time.pug` перед `doctype` задаются локальные значения `title`, `description`, `footerText` и `footerCode`, которые используются общими partial-шаблонами.
+В `home.pug` и `time.pug` перед `doctype` задаются локальные значения `title` и `description`, которые используются общим partial-шаблоном `_head.pug`.
 
 При добавлении общей части сначала стоит вынести её в partial с префиксом `_`, а затем подключить через `include`. Не дублировать header/footer в страницах.
 
@@ -82,7 +84,7 @@ dist/src/scripts/time.js
 ## Клиентская логика
 
 - `src/scripts/home.js` — обработка карточек «скоро» и сообщения в `#home-hint`.
-- `src/scripts/time.js` — переключение режимов, локальные часы, секундомер, помодоро, настройки и звуковой сигнал.
+- `src/scripts/time.js` — переключение режимов, локальные часы, секундомер, помодоро, настройки и звуковой сигнал. Общий блок настроек находится под контентом `time` и содержит формат часов и настройки помодоро.
 
 Ключевые DOM-контракты приложения времени — все элементы с ID в `src/templates/time.pug` (например, `#pomodoro-toggle`, `#clock-digits`, `#stopwatch-toggle`, `#settings-form`). При переименовании ID нужно одновременно менять селекторы в `src/scripts/time.js`.
 
@@ -90,7 +92,7 @@ dist/src/scripts/time.js
 
 ## Стили
 
-`src/styles/main.css` — единая точка подключения стилей. Внутри подключаются базовые стили, токены, компоненты, page-specific CSS и legacy-слой.
+`src/styles/main.css` — единая точка подключения стилей. Внутри подключаются базовые стили, токены, компоненты, page-specific CSS и legacy-слой. В `src/styles/pages/time.css` закреплены одинаковая высота режимов и layout отдельного блока настроек, чтобы переключение не вызывало скачков.
 
 ```text
 src/styles/
@@ -116,6 +118,14 @@ npm run dev
 В dev нужно проверить `/` и `/time.html`, а для страницы времени — все три hash-режима. После build проверить наличие `dist/index.html` и `dist/time.html` и отсутствие неотрендеренных `<pug>`-тегов.
 
 `npm run check` настроен на обнаружение JavaScript-файлов в `src/`; `checkJs` отключён, поэтому команда проверяет конфигурацию и наличие входов TypeScript без требования переписывать текущую vanilla JavaScript-логику на TypeScript.
+
+## UI-соглашения
+
+- Header содержит только логотип; подпись `open-source для продуктивности` удалена.
+- Footer содержит `6.am` и ссылку на автора `mihailovily` (`https://mihailovily.github.io/`).
+- Главная использует английский hero-текст: `Less noise. More focus.` и `A set of tools for productive work.`
+- Favicon — `public/favicon.svg`, простой чёрный квадрат; подключается из общего `_head.pug`.
+- В `time` технические подписи `МЕСТНОЕ ВРЕМЯ`, `СЕКУНДОМЕР`, `ПОМОДОРО` не используются в визуальной верхней части панелей. Доступные ARIA-подписи сохраняются.
 
 ## Важные соглашения
 

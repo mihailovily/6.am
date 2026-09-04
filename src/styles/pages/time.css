@@ -1,2 +1,93 @@
 /* Page-specific additions live here; shared visual rules remain in legacy.css while the stylesheet is migrated safely. */
 .view-panel[hidden] { display: none !important; }
+
+/* Keep each mode in the same stage so switching modes does not move the page. */
+.view-panel > .work-grid,
+.view-panel > .alternate-panel {
+  min-height: 580px;
+}
+
+.work-grid {
+  display: block;
+}
+
+.alternate-panel {
+  position: relative;
+  height: 580px;
+  min-height: 580px;
+}
+
+.alternate-panel .panel-top {
+  position: absolute;
+  inset: 32px 32px auto;
+}
+
+.alternate-panel h1 {
+  margin-top: 45px;
+}
+
+.clock-digits,
+.stopwatch-digits {
+  margin-top: 30px;
+}
+
+.settings-panel {
+  margin-top: 20px;
+  padding: 26px 30px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel-alt);
+}
+
+.settings-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, .55fr) minmax(0, 1.45fr);
+  gap: 32px;
+  margin-top: 22px;
+}
+
+.settings-panel h3 {
+  margin: 0 0 16px;
+  color: #c1c8d0;
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+.pomodoro-settings .field-stack {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pomodoro-settings .settings-intro {
+  margin: 0 0 18px;
+}
+
+.settings-panel .background-note {
+  margin-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .alternate-panel {
+    height: 480px;
+    min-height: 480px;
+  }
+
+  .view-panel > .work-grid,
+  .view-panel > .alternate-panel {
+    min-height: 480px;
+  }
+
+  .settings-panel {
+    padding: 24px;
+  }
+
+  .settings-controls {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .pomodoro-settings .field-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

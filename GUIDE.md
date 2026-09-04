@@ -20,6 +20,8 @@ npm run dev
 - `/time.html` — часы, секундомер и помодоро;
 - `/time.html#clock`, `/time.html#stopwatch`, `/time.html#pomodoro` — прямые ссылки на режимы.
 
+Без hash `/time.html` открывает раздел часов. Настройки формата часов и помодоро находятся в общем блоке под основным контентом страницы.
+
 ## Production-сборка
 
 ```bash
@@ -54,6 +56,8 @@ src/templates/
   _head.pug             общая head-секция
   _header.pug           общий header
   _footer.pug           общий footer
+public/
+  favicon.svg           favicon — чёрный квадрат
 src/styles/
   main.css              единая точка подключения стилей
   tokens.css            дизайн-токены

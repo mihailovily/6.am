@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s), pad=n=>String(n).padStart(2,'0');
 const valid=s=>s&&[s.focus,s.short,s.long].every(n=>Number.isInteger(n)&&n>=1&&n<=180)&&Number.isInteger(s.cycles)&&s.cycles>=1&&s.cycles<=12&&typeof s.sound==='boolean'&&typeof s.autoStart==='boolean';
 let settings=defaults; try { const saved=JSON.parse(localStorage.getItem('6am-preferences')||localStorage.getItem('winter-arc-preferences')||'null'); if(valid(saved)) settings=saved; } catch {}
 const duration=p=>settings[p]*60000, countdown=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}, elapsed=(sw,now=Date.now())=>sw.accumulated+(sw.startedAt===null?0:Math.max(0,now-sw.startedAt)), elapsedText=ms=>{const s=Math.floor(Math.max(0,ms)/1000);return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
-const state={view:codes[location.hash.slice(1)]?location.hash.slice(1):'pomodoro',now:Date.now(),pomodoro:{phase:'focus',remaining:duration('focus'),deadline:null,completed:0,notice:''},stopwatch:{accumulated:0,startedAt:null,laps:[]}};
+const state={view:codes[location.hash.slice(1)]?location.hash.slice(1):'clock',now:Date.now(),pomodoro:{phase:'focus',remaining:duration('focus'),deadline:null,completed:0,notice:''},stopwatch:{accumulated:0,startedAt:null,laps:[]}};
 let audio=null;
 const resetIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
 const lapIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l14 16M19 4L5 20M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';

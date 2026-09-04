@@ -1,7 +1,5 @@
 - var title = '6.am — Время'
 - var description = '6.am — часы, секундомер и настраиваемый помодоро.'
-- var footerText = 'Меньше шума. Больше присутствия.'
-- var footerCode = '6.AM · TIME'
 doctype html
 html(lang="ru", class="dark")
   include _head.pug
@@ -36,7 +34,6 @@ html(lang="ru", class="dark")
           .work-grid
             section.timer-panel(aria-label="Помодоро")
               .panel-top
-                span.eyebrow ПОМОДОРО
                 span.status#pomodoro-status
                   i
                   | Готов к старту
@@ -64,50 +61,19 @@ html(lang="ru", class="dark")
                   .progress-indicator#progress-indicator
                 .session-marks#session-marks(aria-label="Завершено в цикле: 0 из 4")
                 p.cycle-caption До длинного отдыха
-            aside.settings-panel
-              .settings-heading
-                span(aria-hidden="true") ✣
-                h2 Твой ритм
-              p.settings-intro Настрой время под свою задачу.
-              form#settings-form
-                .field-stack
-                  each field in [{id: 'focus', label: 'Фокус', unit: 'мин', max: 180}, {id: 'short', label: 'Короткий отдых', unit: 'мин', max: 180}, {id: 'long', label: 'Длинный отдых', unit: 'мин', max: 180}, {id: 'cycles', label: 'Сессий до длинного отдыха', unit: 'шт.', max: 12}]
-                    label.number-field
-                      span= field.label
-                      div
-                        input(id=field.id + '-input', type="number", min="1", max=field.max, required)
-                        span= field.unit
-                .settings-divider
-                .toggle-row
-                  label(for="sound-input") Звуковой сигнал
-                  input.switch#sound-input(type="checkbox")
-                .toggle-row
-                  label(for="auto-start-input") Автозапуск этапов
-                  input.switch#auto-start-input(type="checkbox")
-                button.text-button.settings-apply(type="submit") Применить настройки
-                p.feedback#settings-feedback(role="status")
-                p.feedback.error#settings-error(role="alert")
-              p.settings-note.background-note Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.
 
         section.view-panel(data-panel="clock", role="tabpanel", hidden)
           section.alternate-panel
-            .panel-top
-              span.eyebrow МЕСТНОЕ ВРЕМЯ
-              .toggle-row
-                label(for="clock-format") 24 часа
-                input.switch#clock-format(type="checkbox", checked)
             h1 Здесь. Сейчас.
             .timer-digits.clock-digits#clock-digits(role="timer") --:--:--
             p.date-label#date-label Местное время устройства
             .clock-meta
               span#time-zone
-              span Время устройства
             .clock-rule#clock-rule(aria-hidden="true")
 
         section.view-panel(data-panel="stopwatch", role="tabpanel", hidden)
           section.alternate-panel
             .panel-top
-              span.eyebrow СЕКУНДОМЕР
               span.status#stopwatch-status
                 i
                 | Готов к старту
@@ -130,5 +96,36 @@ html(lang="ru", class="dark")
                     th Всего
                 tbody#laps-body
             p.settings-note.alternate-note Секундомер продолжает работать при смене режима. Сброс удаляет круги.
+        section.settings-panel(aria-label="Настройки")
+          .settings-heading
+            span(aria-hidden="true") ✣
+            h2 Настройки
+          .settings-controls
+            .clock-settings
+              h3 Формат часов
+              .toggle-row
+                label(for="clock-format") 24 часа
+                input.switch#clock-format(type="checkbox", checked)
+            form#settings-form.pomodoro-settings
+              h3 Настройки помодоро
+              p.settings-intro Настрой время под свою задачу.
+              .field-stack
+                each field in [{id: 'focus', label: 'Фокус', unit: 'мин', max: 180}, {id: 'short', label: 'Короткий отдых', unit: 'мин', max: 180}, {id: 'long', label: 'Длинный отдых', unit: 'мин', max: 180}, {id: 'cycles', label: 'Сессий до длинного отдыха', unit: 'шт.', max: 12}]
+                  label.number-field
+                    span= field.label
+                    div
+                      input(id=field.id + '-input', type="number", min="1", max=field.max, required)
+                      span= field.unit
+              .settings-divider
+              .toggle-row
+                label(for="sound-input") Звуковой сигнал
+                input.switch#sound-input(type="checkbox")
+              .toggle-row
+                label(for="auto-start-input") Автозапуск этапов
+                input.switch#auto-start-input(type="checkbox")
+              button.text-button.settings-apply(type="submit") Применить настройки
+              p.feedback#settings-feedback(role="status")
+              p.feedback.error#settings-error(role="alert")
+            p.settings-note.background-note Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.
       include _footer.pug
     script(src="/src/scripts/time.js", defer)
