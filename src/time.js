@@ -7,6 +7,11 @@ let settings=defaults; try { const saved=JSON.parse(localStorage.getItem('6am-pr
 const duration=p=>settings[p]*60000, countdown=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}, elapsed=(sw,now=Date.now())=>sw.accumulated+(sw.startedAt===null?0:Math.max(0,now-sw.startedAt)), elapsedText=ms=>{const s=Math.floor(Math.max(0,ms)/1000);return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
 const state={view:codes[location.hash.slice(1)]?location.hash.slice(1):'pomodoro',now:Date.now(),pomodoro:{phase:'focus',remaining:duration('focus'),deadline:null,completed:0,notice:''},stopwatch:{accumulated:0,startedAt:null,laps:[]}};
 let audio=null;
+const resetIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
+const lapIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l14 16M19 4L5 20M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
+$('#pomodoro-reset').innerHTML=resetIcon;
+$('#stopwatch-reset').innerHTML=resetIcon;
+$('#stopwatch-lap').innerHTML=lapIcon;
 let stopwatchFrame=0;
 function updateStopwatch(){
   if(state.stopwatch.startedAt===null){stopwatchFrame=0;return}
