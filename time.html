@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#08090b" />
+    <meta name="description" content="6.am — часы, секундомер и настраиваемый помодоро." />
+    <title>6.am — Время</title>
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="wordmark" href="index.html" aria-label="6.am — главная"><span>6<span class="wordmark-dot">.</span>am</span></a>
+        <span class="header-note">open-source для продуктивности</span>
+      </header>
+      <main>
+        <div class="navigation"><div class="mode-tabs" role="tablist" aria-label="Режим времени">
+          <a class="mode-tab" href="#clock" role="tab" data-view="clock"><span class="tab-icon">◷</span>Часы</a>
+          <a class="mode-tab" href="#stopwatch" role="tab" data-view="stopwatch"><span class="tab-icon">◌</span>Секундомер<span class="tab-dot" data-running="stopwatch" hidden></span></a>
+          <a class="mode-tab" href="#pomodoro" role="tab" data-view="pomodoro"><span class="tab-icon">⌛</span>Помодоро<span class="tab-dot" data-running="pomodoro" hidden></span></a>
+        </div><span class="section-code" id="section-code">FOCUS / 03</span></div>
+
+        <section class="view-panel" data-panel="pomodoro" role="tabpanel"><div class="work-grid"><section class="timer-panel" aria-label="Помодоро">
+          <div class="panel-top"><span class="eyebrow">ПОМОДОРО</span><span class="status" id="pomodoro-status"><i></i>Готов к старту</span></div>
+          <div class="timer-center"><h1 id="pomodoro-heading">Время сосредоточиться.</h1><div class="phase-choice" role="group" aria-label="Этап помодоро"><button class="phase-button selected" data-phase="focus">Фокус</button><button class="phase-button" data-phase="short">Короткий отдых</button><button class="phase-button" data-phase="long">Длинный отдых</button></div><div class="timer-digits" id="pomodoro-digits" role="timer">25<span>:</span>00</div><div class="session-label" id="session-label">СЕССИЯ 01 <span>/ 04</span></div><div class="timer-actions"><button class="icon-button" id="pomodoro-reset" aria-label="Сбросить текущий этап">↺</button><button class="primary-button" id="pomodoro-toggle"><span>Начать фокус</span></button></div><p class="completion-notice" id="pomodoro-notice" role="status"></p></div>
+          <div class="timer-bottom"><div><span id="progress-label">Фокус</span><span id="progress-value">25 мин · 0%</span></div><div class="progress-track"><div class="progress-indicator" id="progress-indicator"></div></div><div class="session-marks" id="session-marks" aria-label="Завершено в цикле: 0 из 4"></div><p class="cycle-caption">До длинного отдыха</p></div>
+        </section><aside class="settings-panel"><div class="settings-heading"><span aria-hidden="true">✣</span><h2>Твой ритм</h2></div><p class="settings-intro">Настрой время под свою задачу.</p><form id="settings-form"><div class="field-stack"><label class="number-field"><span>Фокус</span><div><input id="focus-input" type="number" min="1" max="180" required /><span>мин</span></div></label><label class="number-field"><span>Короткий отдых</span><div><input id="short-input" type="number" min="1" max="180" required /><span>мин</span></div></label><label class="number-field"><span>Длинный отдых</span><div><input id="long-input" type="number" min="1" max="180" required /><span>мин</span></div></label><label class="number-field"><span>Сессий до длинного отдыха</span><div><input id="cycles-input" type="number" min="1" max="12" required /><span>шт.</span></div></label></div><div class="settings-divider"></div><div class="toggle-row"><label for="sound-input">Звуковой сигнал</label><input class="switch" id="sound-input" type="checkbox" /></div><div class="toggle-row"><label for="auto-start-input">Автозапуск этапов</label><input class="switch" id="auto-start-input" type="checkbox" /></div><button class="text-button settings-apply" type="submit">Применить настройки</button><p class="feedback" id="settings-feedback" role="status"></p><p class="feedback error" id="settings-error" role="alert"></p></form><p class="settings-note background-note">Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.</p></aside>
+        </div></section>
+        <section class="view-panel" data-panel="clock" role="tabpanel" hidden><section class="alternate-panel"><div class="panel-top"><span class="eyebrow">МЕСТНОЕ ВРЕМЯ</span><div class="toggle-row"><label for="clock-format">24 часа</label><input class="switch" id="clock-format" type="checkbox" checked /></div></div><h1>Здесь. Сейчас.</h1><div class="timer-digits clock-digits" id="clock-digits" role="timer">--:--:--</div><p class="date-label" id="date-label">Местное время устройства</p><div class="clock-meta"><span id="time-zone"></span><span>Время устройства</span></div><div class="clock-rule" id="clock-rule" aria-hidden="true"></div></section></section>
+        <section class="view-panel" data-panel="stopwatch" role="tabpanel" hidden><section class="alternate-panel"><div class="panel-top"><span class="eyebrow">СЕКУНДОМЕР</span><span class="status" id="stopwatch-status"><i></i>Готов к старту</span></div><h1>Каждая секунда на своём месте.</h1><div class="timer-digits stopwatch-digits" id="stopwatch-digits" role="timer">00:00:00<small class="hundredths">.00</small></div><div class="timer-actions"><button class="icon-button" id="stopwatch-reset" disabled aria-label="Сбросить секундомер">↺</button><button class="primary-button" id="stopwatch-toggle"><span>Начать</span></button><button class="icon-button" id="stopwatch-lap" disabled aria-label="Записать круг">⚑</button></div><p class="empty-note" id="laps-empty">Нажми на флажок, чтобы записать круг.</p><div class="laps" id="laps" hidden><table><thead><tr><th>Круг</th><th>Время круга</th><th>Всего</th></tr></thead><tbody id="laps-body"></tbody></table></div><p class="settings-note alternate-note">Секундомер продолжает работать при смене режима. Сброс удаляет круги.</p></section></section>
+      </main><footer><span>Меньше шума. Больше присутствия.</span><span>6.AM · TIME</span></footer>
+    </div><script src="src/time.js" defer></script>
+  </body>
+</html>
