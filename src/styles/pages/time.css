@@ -1,0 +1,2 @@
+/* Page-specific additions live here; shared visual rules remain in legacy.css while the stylesheet is migrated safely. */
+.view-panel[hidden] { display: none !important; }

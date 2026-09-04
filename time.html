@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#08090b" />
     <meta name="description" content="6.am — часы, секундомер и настраиваемый помодоро." />
     <title>6.am — Время</title>
-    <link rel="stylesheet" href="src/style.css" />
+    <link rel="stylesheet" href="src/styles/main.css" />
   </head>
   <body>
     <div class="site-shell">
@@ -30,6 +30,6 @@
         <section class="view-panel" data-panel="clock" role="tabpanel" hidden><section class="alternate-panel"><div class="panel-top"><span class="eyebrow">МЕСТНОЕ ВРЕМЯ</span><div class="toggle-row"><label for="clock-format">24 часа</label><input class="switch" id="clock-format" type="checkbox" checked /></div></div><h1>Здесь. Сейчас.</h1><div class="timer-digits clock-digits" id="clock-digits" role="timer">--:--:--</div><p class="date-label" id="date-label">Местное время устройства</p><div class="clock-meta"><span id="time-zone"></span><span>Время устройства</span></div><div class="clock-rule" id="clock-rule" aria-hidden="true"></div></section></section>
         <section class="view-panel" data-panel="stopwatch" role="tabpanel" hidden><section class="alternate-panel"><div class="panel-top"><span class="eyebrow">СЕКУНДОМЕР</span><span class="status" id="stopwatch-status"><i></i>Готов к старту</span></div><h1>Каждая секунда на своём месте.</h1><div class="timer-digits stopwatch-digits" id="stopwatch-digits" role="timer">00:00:00<small class="hundredths">.00</small></div><div class="timer-actions"><button class="icon-button" id="stopwatch-reset" disabled aria-label="Сбросить секундомер">↺</button><button class="primary-button" id="stopwatch-toggle"><span>Начать</span></button><button class="icon-button" id="stopwatch-lap" disabled aria-label="Записать круг">⚑</button></div><p class="empty-note" id="laps-empty">Нажми на флажок, чтобы записать круг.</p><div class="laps" id="laps" hidden><table><thead><tr><th>Круг</th><th>Время круга</th><th>Всего</th></tr></thead><tbody id="laps-body"></tbody></table></div><p class="settings-note alternate-note">Секундомер продолжает работать при смене режима. Сброс удаляет круги.</p></section></section>
       </main><footer><span>Меньше шума. Больше присутствия.</span><span>6.AM · TIME</span></footer>
-    </div><script src="src/time.js" defer></script>
+    </div><script src="src/scripts/time.js" defer></script>
   </body>
 </html>

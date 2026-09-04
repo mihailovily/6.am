@@ -1,0 +1,4 @@
+.tab-icon { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: currentColor; }
+.tab-icon svg, .icon-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.icon-button { display: inline-flex; align-items: center; justify-content: center; }
+.icon-button svg { pointer-events: none; }
