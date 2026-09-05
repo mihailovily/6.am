@@ -9,28 +9,34 @@ html(lang="ru", class="dark")
       main
         .navigation
           .mode-tabs(role="tablist", aria-label="Режим времени")
-            a.mode-tab(href="#clock", role="tab", data-view="clock")
+            a#tab-clock.mode-tab(href="#clock", role="tab", data-view="clock")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   circle(cx="12", cy="12", r="9")
                   path(d="M12 7v5l3 2")
               | Часы
-            a.mode-tab(href="#stopwatch", role="tab", data-view="stopwatch")
+            a#tab-stopwatch.mode-tab(href="#stopwatch", role="tab", data-view="stopwatch")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   circle(cx="12", cy="13", r="7")
                   path(d="M12 2v4M9 2h6M17 8l2-2")
               | Секундомер
               span.tab-dot(data-running="stopwatch", hidden)
-            a.mode-tab(href="#pomodoro", role="tab", data-view="pomodoro")
+            a#tab-pomodoro.mode-tab(href="#pomodoro", role="tab", data-view="pomodoro")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   path(d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4")
               | Помодоро
               span.tab-dot(data-running="pomodoro", hidden)
-          span.section-code#section-code FOCUS / 03
+            a#tab-settings.mode-tab(href="#settings", role="tab", data-view="settings")
+              span.tab-icon(aria-hidden="true")
+                svg(viewBox="0 0 24 24")
+                  circle(cx="12", cy="12", r="3")
+                  path(d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20h-3v-.08A1.7 1.7 0 0 0 10.66 18.36a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 14.7a1.7 1.7 0 0 0-1.56-1.04H5v-3h.08A1.7 1.7 0 0 0 6.64 9.62 1.7 1.7 0 0 0 6.3 7.74l-.06-.06 2.12-2.12.06.06A1.7 1.7 0 0 0 10.3 6a1.7 1.7 0 0 0 1.04-1.56V4h3v.08A1.7 1.7 0 0 0 15.38 5.64a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19 9.3a1.7 1.7 0 0 0 1.56 1.04H21v3h-.08A1.7 1.7 0 0 0 19.4 15Z")
+              | Настройки
+          span.section-code#section-code TIME / 01
 
-        section.view-panel(data-panel="pomodoro", role="tabpanel")
+        section.view-panel(data-panel="pomodoro", role="tabpanel", aria-labelledby="tab-pomodoro")
           .work-grid
             section.timer-panel(aria-label="Помодоро")
               .panel-top
@@ -62,16 +68,16 @@ html(lang="ru", class="dark")
                 .session-marks#session-marks(aria-label="Завершено в цикле: 0 из 4")
                 p.cycle-caption До длинного отдыха
 
-        section.view-panel(data-panel="clock", role="tabpanel", hidden)
+        section.view-panel(data-panel="clock", role="tabpanel", aria-labelledby="tab-clock", hidden)
           section.alternate-panel
-            h1 Здесь. Сейчас.
+            h1#clock-heading Good morning.
             .timer-digits.clock-digits#clock-digits(role="timer") --:--:--
             p.date-label#date-label Местное время устройства
             .clock-meta
               span#time-zone
             .clock-rule#clock-rule(aria-hidden="true")
 
-        section.view-panel(data-panel="stopwatch", role="tabpanel", hidden)
+        section.view-panel(data-panel="stopwatch", role="tabpanel", aria-labelledby="tab-stopwatch", hidden)
           section.alternate-panel
             .panel-top
               span.status#stopwatch-status
@@ -96,36 +102,47 @@ html(lang="ru", class="dark")
                     th Всего
                 tbody#laps-body
             p.settings-note.alternate-note Секундомер продолжает работать при смене режима. Сброс удаляет круги.
-        section.settings-panel(aria-label="Настройки")
-          .settings-heading
-            span(aria-hidden="true") ✣
-            h2 Настройки
-          .settings-controls
-            .clock-settings
-              h3 Формат часов
-              .toggle-row
-                label(for="clock-format") 24 часа
-                input.switch#clock-format(type="checkbox", checked)
-            form#settings-form.pomodoro-settings
-              h3 Настройки помодоро
-              p.settings-intro Настрой время под свою задачу.
-              .field-stack
-                each field in [{id: 'focus', label: 'Фокус', unit: 'мин', max: 180}, {id: 'short', label: 'Короткий отдых', unit: 'мин', max: 180}, {id: 'long', label: 'Длинный отдых', unit: 'мин', max: 180}, {id: 'cycles', label: 'Сессий до длинного отдыха', unit: 'шт.', max: 12}]
-                  label.number-field
-                    span= field.label
-                    div
-                      input(id=field.id + '-input', type="number", min="1", max=field.max, required)
-                      span= field.unit
-              .settings-divider
-              .toggle-row
-                label(for="sound-input") Звуковой сигнал
-                input.switch#sound-input(type="checkbox")
-              .toggle-row
-                label(for="auto-start-input") Автозапуск этапов
-                input.switch#auto-start-input(type="checkbox")
-              button.text-button.settings-apply(type="submit") Применить настройки
-              p.feedback#settings-feedback(role="status")
-              p.feedback.error#settings-error(role="alert")
+        section.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", hidden)
+          section.settings-panel.settings-view(aria-label="Настройки")
+            .settings-heading
+              span(aria-hidden="true") ✣
+              h2 Настройки
+            .settings-controls
+              form#clock-settings-form.clock-settings
+                h3 Часы
+                p.settings-intro Выбери время и подпись, которые подходят тебе.
+                .toggle-row
+                  label(for="clock-format") 24 часа
+                  input.switch#clock-format(type="checkbox", checked)
+                label.settings-field
+                  span Часовой пояс
+                  select#time-zone-select(name="time-zone")
+                label.settings-field
+                  span Своя подпись
+                  input#time-zone-label(type="text", name="time-zone-label", maxlength="80", autocomplete="off", placeholder="Например, Дом")
+                button.text-button.settings-apply(type="submit") Сохранить часы
+                p.feedback#clock-settings-feedback(role="status")
+                p.feedback.error#clock-settings-error(role="alert")
+              form#settings-form.pomodoro-settings
+                h3 Настройки помодоро
+                p.settings-intro Настрой время под свою задачу.
+                .field-stack
+                  each field in [{id: 'focus', label: 'Фокус', unit: 'мин', max: 180}, {id: 'short', label: 'Короткий отдых', unit: 'мин', max: 180}, {id: 'long', label: 'Длинный отдых', unit: 'мин', max: 180}, {id: 'cycles', label: 'Сессий до длинного отдыха', unit: 'шт.', max: 12}]
+                    label.number-field
+                      span= field.label
+                      div
+                        input(id=field.id + '-input', type="number", min="1", max=field.max, required)
+                        span= field.unit
+                .settings-divider
+                .toggle-row
+                  label(for="sound-input") Звуковой сигнал
+                  input.switch#sound-input(type="checkbox")
+                .toggle-row
+                  label(for="auto-start-input") Автозапуск этапов
+                  input.switch#auto-start-input(type="checkbox")
+                button.text-button.settings-apply(type="submit") Применить настройки
+                p.feedback#settings-feedback(role="status")
+                p.feedback.error#settings-error(role="alert")
             p.settings-note.background-note Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.
       include _footer.pug
     script(src="/src/scripts/time.js", defer)

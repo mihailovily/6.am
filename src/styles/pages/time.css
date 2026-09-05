@@ -3,7 +3,8 @@
 
 /* Keep each mode in the same stage so switching modes does not move the page. */
 .view-panel > .work-grid,
-.view-panel > .alternate-panel {
+.view-panel > .alternate-panel,
+.view-panel > .settings-panel {
   min-height: 580px;
 }
 
@@ -26,7 +27,11 @@
   margin-top: 45px;
 }
 
-.clock-digits,
+.clock-digits {
+  margin: 30px auto 15px;
+  font-size: clamp(4.8rem, 13vw, 12rem);
+}
+
 .stopwatch-digits {
   margin-top: 30px;
 }
@@ -37,6 +42,11 @@
   border: 1px solid var(--border);
   border-radius: 5px;
   background: var(--panel-alt);
+}
+
+.settings-view {
+  min-height: 580px;
+  margin-top: 0;
 }
 
 .settings-controls {
@@ -51,6 +61,45 @@
   color: #c1c8d0;
   font-size: .875rem;
   font-weight: 500;
+}
+
+.clock-settings .toggle-row {
+  margin-bottom: 20px;
+}
+
+.settings-field {
+  display: block;
+  margin-top: 18px;
+  color: #c1c8d0;
+  font-size: .875rem;
+}
+
+.settings-field > span {
+  display: block;
+  margin-bottom: 9px;
+}
+
+.settings-field input,
+.settings-field select {
+  width: 100%;
+  min-height: 45px;
+  padding: 11px 12px;
+  border: 1px solid #353b43;
+  border-radius: 3px;
+  outline: 0;
+  background: #0d1013;
+  color: #edf2f5;
+  font: 1rem Consolas, monospace;
+}
+
+.settings-field select {
+  cursor: pointer;
+}
+
+.settings-field input:focus-visible,
+.settings-field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .pomodoro-settings .field-stack {
@@ -74,12 +123,17 @@
   }
 
   .view-panel > .work-grid,
-  .view-panel > .alternate-panel {
+  .view-panel > .alternate-panel,
+  .view-panel > .settings-panel {
     min-height: 480px;
   }
 
   .settings-panel {
     padding: 24px;
+  }
+
+  .settings-view {
+    min-height: 480px;
   }
 
   .settings-controls {
@@ -89,5 +143,10 @@
 
   .pomodoro-settings .field-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clock-digits {
+    margin-top: 55px;
+    font-size: clamp(2.8rem, 11.8vw, 6.25rem);
   }
 }

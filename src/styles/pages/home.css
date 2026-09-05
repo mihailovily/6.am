@@ -1,0 +1,29 @@
+.home-main {
+  padding: clamp(40px, 7vh, 85px) 0 80px;
+}
+
+footer {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+footer > span::after {
+  content: ' · ';
+  color: #69727b;
+}
+
+footer a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+footer a:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 760px) {
+  .home-main {
+    padding: 40px 0;
+  }
+}
