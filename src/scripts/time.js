@@ -63,7 +63,7 @@ let lastClockSecond = -1;
 let lastClockRuleSecond = -1;
 let lastPomodoroSecond = -1;
 const resetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
-const lapIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l14 16M19 4L5 20M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
+const lapIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4m0 1c4-2 7 2 12 0v9c-5 2-8-2-12 0"/></svg>';
 
 $('#pomodoro-reset').innerHTML = resetIcon;
 $('#stopwatch-reset').innerHTML = resetIcon;
@@ -250,6 +250,10 @@ function renderStopwatch() {
   $('#stopwatch-toggle').innerHTML = `<span>${running ? 'Pause' : time ? 'Resume' : 'Start'}</span>`;
   /** @type {HTMLButtonElement} */ ($('#stopwatch-reset')).disabled = time === 0;
   /** @type {HTMLButtonElement} */ ($('#stopwatch-lap')).disabled = !running || state.stopwatch.laps.length >= 100;
+  const actionGroup = /** @type {HTMLElement} */ ($('#stopwatch-actions'));
+  actionGroup.classList.toggle('is-initial', !running && time === 0);
+  actionGroup.classList.toggle('is-running', running);
+  actionGroup.classList.toggle('is-paused', !running && time > 0);
   renderLaps();
 }
 

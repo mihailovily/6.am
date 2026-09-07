@@ -79,7 +79,7 @@ html(lang="en", class="dark")
             .timer-digits.stopwatch-digits#stopwatch-digits(role="timer")
               | 00:00:00
               small.hundredths .00
-            .timer-actions
+            .timer-actions#stopwatch-actions
               button.icon-button#stopwatch-reset(disabled, aria-label="Reset stopwatch") ↺
               button.primary-button#stopwatch-toggle
                 span Start
@@ -116,6 +116,7 @@ html(lang="en", class="dark")
                 button.text-button.settings-apply(type="submit") Save clock settings
                 p.feedback#clock-settings-feedback(role="status")
                 p.feedback.error#clock-settings-error(role="alert")
+              .settings-section-divider(aria-hidden="true")
               form#settings-form.pomodoro-settings
                 h3 Pomodoro settings
                 p.settings-intro Set the timing for your task.
