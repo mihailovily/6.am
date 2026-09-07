@@ -27,7 +27,6 @@ main,
   background: var(--panel);
 }
 
-.panel-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .timer-center { flex: 1; padding: 40px 0 38px; text-align: center; }
 h1 { margin: 0 0 26px; color: var(--body-text-soft); font-size: 1.25rem; font-weight: 400; letter-spacing: -.025em; }
 
@@ -48,14 +47,9 @@ h1 { margin: 0 0 26px; color: var(--body-text-soft); font-size: 1.25rem; font-we
 
 .timer-bottom { width: 100%; max-width: 480px; margin: auto; }
 .timer-bottom > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--body-text-secondary); font-size: .8125rem; }
-.progress-track { height: 2px; background: var(--track); }
+.progress-track { height: 2px; margin-bottom: 32px; background: var(--track); }
 .progress-indicator { width: 0; height: 100%; background: var(--accent-strong); }
-.session-marks { display: flex; justify-content: center; gap: 7px; margin-top: 25px; }
-.session-marks b { width: 22px; height: 3px; background: var(--mark); }
-.session-marks b.complete { background: var(--accent); }
-.cycle-caption,
-.completion-notice { color: var(--body-text-faint); font-size: .75rem; text-align: center; }
-.completion-notice { min-height: 22px; margin: 18px 0 0; color: var(--accent-text); font-size: .875rem; line-height: 1.6; }
+.completion-notice { min-height: 22px; margin: 18px 0 0; color: var(--accent-text); font-size: .875rem; line-height: 1.6; text-align: center; }
 
 .settings-heading { display: flex; align-items: center; gap: 10px; font-size: .875rem; }
 .settings-heading span { color: var(--accent-muted); }
@@ -84,7 +78,6 @@ th,
 td { padding: 13px 8px; border-top: 1px solid var(--border); text-align: left; }
 th { color: var(--body-text-subtle); font-weight: 500; }
 td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
-.alternate-note { margin-top: 25px; }
 
 /* Keep each mode in the same stage so switching modes does not move the page. */
 .view-panel > .work-grid,
@@ -119,11 +112,6 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
   top: 0;
   z-index: 1;
   background: var(--panel);
-}
-
-.alternate-panel .panel-top {
-  position: absolute;
-  inset: 32px 32px auto;
 }
 
 .alternate-panel h1 {

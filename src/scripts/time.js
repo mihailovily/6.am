@@ -121,13 +121,6 @@ function syncClockSettings() {
   /** @type {HTMLInputElement} */ ($('#time-zone-label')).value = settings.timeZoneLabel;
 }
 
-/** @param {HTMLElement} element @param {string} text @param {boolean} running */
-function setStatus(element, text, running) {
-  element.classList.toggle('running', running);
-  const dot = element.querySelector('i') || document.createElement('i');
-  element.replaceChildren(dot, document.createTextNode(text));
-}
-
 /** @param {number} milliseconds */
 function countdown(milliseconds) {
   const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
@@ -168,15 +161,6 @@ function renderPhaseButtons() {
   });
 }
 
-/** @param {number} visible */
-function renderSessionMarks(visible) {
-  const marks = $('#session-marks');
-  if (marks.childElementCount !== settings.cycles) {
-    marks.replaceChildren(...Array.from({ length: settings.cycles }, () => document.createElement('b')));
-  }
-  [...marks.children].forEach((mark, index) => mark.classList.toggle('complete', index < visible));
-}
-
 function renderPomodoro() {
   const timer = state.pomodoro;
   const running = timer.deadline !== null;
@@ -184,9 +168,9 @@ function renderPomodoro() {
   const progress = Math.min(100, Math.max(0, 100 * (1 - timer.remaining / total)));
   const remaining = countdown(timer.remaining);
   const done = timer.completed % settings.cycles;
-  const visible = timer.phase === 'long' && done === 0 && timer.completed > 0 ? settings.cycles : done;
-  const session = timer.phase === 'focus' ? done + 1 : done || settings.cycles;
-  setStatus(/** @type {HTMLElement} */ ($('#pomodoro-status')), running ? 'Counting down' : timer.remaining < total ? 'Paused' : 'Ready to start', running);
+  const session = timer.phase === 'focus'
+    ? done + 1
+    : (timer.phase === 'long' && done === 0 && timer.completed > 0 ? settings.cycles : Math.max(1, done));
   $('#pomodoro-heading').textContent = timer.phase === 'focus' ? 'Time to focus.' : 'A break is part of the work.';
   $('#pomodoro-digits').innerHTML = `${remaining.split(':')[0]}<span>:</span>${remaining.split(':')[1]}`;
   $('#pomodoro-digits').setAttribute('aria-label', `${remaining} remaining`);
@@ -196,8 +180,6 @@ function renderPomodoro() {
   $('#progress-label').textContent = labels[timer.phase];
   $('#progress-value').textContent = `${settings[timer.phase]} min · ${Math.floor(progress)}%`;
   /** @type {HTMLElement} */ ($('#progress-indicator')).style.width = `${progress}%`;
-  $('#session-marks').setAttribute('aria-label', `Completed in cycle: ${visible} of ${settings.cycles}`);
-  renderSessionMarks(visible);
   renderPhaseButtons();
   updateDocumentTitle();
 }
@@ -264,7 +246,6 @@ function renderLaps() {
 function renderStopwatch() {
   const time = elapsed(state.stopwatch);
   const running = state.stopwatch.startedAt !== null;
-  setStatus(/** @type {HTMLElement} */ ($('#stopwatch-status')), running ? 'Counting' : time ? 'Paused' : 'Ready to start', running);
   renderStopwatchTime();
   $('#stopwatch-toggle').innerHTML = `<span>${running ? 'Pause' : time ? 'Resume' : 'Start'}</span>`;
   /** @type {HTMLButtonElement} */ ($('#stopwatch-reset')).disabled = time === 0;

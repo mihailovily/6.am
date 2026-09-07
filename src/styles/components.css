@@ -98,18 +98,6 @@ footer a { color: var(--muted-foreground); text-decoration: none; transition: co
 footer a:hover { color: var(--foreground); }
 .footer-heart { margin: 0 .25em; color: currentColor; font-family: Arial, sans-serif; font-variant-emoji: text; }
 
-.status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--status);
-  font-size: .8125rem;
-}
-
-.status i { width: 5px; height: 5px; border-radius: 50%; background: var(--status); }
-.status.running { color: var(--accent-strong); }
-.status.running i { background: var(--accent-strong); }
-
 .phase-choice { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
 
 .phase-button {

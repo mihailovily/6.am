@@ -41,10 +41,6 @@ html(lang="en", class="dark")
         section#panel-pomodoro.view-panel(data-panel="pomodoro", role="tabpanel", aria-labelledby="tab-pomodoro", tabindex="0")
           .work-grid
             section.timer-panel(aria-label="Pomodoro")
-              .panel-top
-                span.status#pomodoro-status
-                  i
-                  | Ready to start
               .timer-center
                 h1#pomodoro-heading Time to focus.
                 .phase-choice(role="group", aria-label="Pomodoro phase")
@@ -67,8 +63,6 @@ html(lang="en", class="dark")
                   span#progress-value 25 min · 0%
                 .progress-track
                   .progress-indicator#progress-indicator
-                .session-marks#session-marks(aria-label="Completed in cycle: 0 of 4")
-                p.cycle-caption Until long break
 
         section#panel-clock.view-panel(data-panel="clock", role="tabpanel", aria-labelledby="tab-clock", tabindex="0", hidden)
           section.alternate-panel
@@ -81,10 +75,6 @@ html(lang="en", class="dark")
 
         section#panel-stopwatch.view-panel(data-panel="stopwatch", role="tabpanel", aria-labelledby="tab-stopwatch", tabindex="0", hidden)
           section.alternate-panel.stopwatch-panel
-            .panel-top
-              span.status#stopwatch-status
-                i
-                | Ready to start
             h1 Every second in its place.
             .timer-digits.stopwatch-digits#stopwatch-digits(role="timer")
               | 00:00:00
@@ -103,7 +93,6 @@ html(lang="en", class="dark")
                     th Lap time
                     th Total
                 tbody#laps-body
-            p.settings-note.alternate-note The stopwatch keeps running when you change modes. Reset clears laps.
         section#panel-settings.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", tabindex="0", hidden)
           section.settings-panel.settings-view(aria-label="Settings")
             .settings-heading
