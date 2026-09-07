@@ -1,4 +1,5 @@
 .tab-icon { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: currentColor; }
-.tab-icon svg, .icon-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.tab-icon svg, .settings-icon svg, .icon-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.settings-icon { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: currentColor; flex: 0 0 auto; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; }
 .icon-button svg { pointer-events: none; }

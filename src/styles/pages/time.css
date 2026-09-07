@@ -1,6 +1,11 @@
 /* Page-specific additions live here; shared visual rules remain in legacy.css while the stylesheet is migrated safely. */
 .view-panel[hidden] { display: none !important; }
 
+.timer-digits {
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Keep each mode in the same stage so switching modes does not move the page. */
 .view-panel > .work-grid,
 .view-panel > .alternate-panel,

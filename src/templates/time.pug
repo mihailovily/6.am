@@ -1,5 +1,9 @@
 - var title = '6.am — Время'
 - var description = '6.am — часы, секундомер и настраиваемый помодоро.'
+mixin settingsIcon
+  svg(viewBox="0 0 24 24")
+    path(d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z")
+    circle(cx="12", cy="12", r="3")
 doctype html
 html(lang="ru", class="dark")
   include _head.pug
@@ -30,9 +34,7 @@ html(lang="ru", class="dark")
               span.tab-dot(data-running="pomodoro", hidden)
             a#tab-settings.mode-tab(href="#settings", role="tab", data-view="settings")
               span.tab-icon(aria-hidden="true")
-                svg(viewBox="0 0 24 24")
-                  circle(cx="12", cy="12", r="3")
-                  path(d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20h-3v-.08A1.7 1.7 0 0 0 10.66 18.36a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 14.7a1.7 1.7 0 0 0-1.56-1.04H5v-3h.08A1.7 1.7 0 0 0 6.64 9.62 1.7 1.7 0 0 0 6.3 7.74l-.06-.06 2.12-2.12.06.06A1.7 1.7 0 0 0 10.3 6a1.7 1.7 0 0 0 1.04-1.56V4h3v.08A1.7 1.7 0 0 0 15.38 5.64a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19 9.3a1.7 1.7 0 0 0 1.56 1.04H21v3h-.08A1.7 1.7 0 0 0 19.4 15Z")
+                +settingsIcon
               | Настройки
           span.section-code#section-code TIME / 01
 
@@ -105,7 +107,8 @@ html(lang="ru", class="dark")
         section.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", hidden)
           section.settings-panel.settings-view(aria-label="Настройки")
             .settings-heading
-              span(aria-hidden="true") ✣
+              span.settings-icon(aria-hidden="true")
+                +settingsIcon
               h2 Настройки
             .settings-controls
               form#clock-settings-form.clock-settings
