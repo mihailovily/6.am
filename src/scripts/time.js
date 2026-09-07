@@ -1,59 +1,67 @@
-const $ = selector => document.querySelector(selector);
-const pad = number => String(number).padStart(2, '0');
+// @ts-check
+
+import {
+  advancePomodoro,
+  buildTimeZones,
+  createRuntime,
+  duration,
+  elapsed,
+  isValidTimeZone,
+  normalizeRuntime,
+  normalizeSettings,
+  runtimeSnapshot,
+  saveJson,
+  validPomodoroSettings
+} from './time-domain.js';
+
+/** @typedef {import('./time-domain.js').Settings} Settings */
+/** @typedef {import('./time-domain.js').Phase} Phase */
+/** @typedef {'clock' | 'stopwatch' | 'pomodoro' | 'settings'} View */
+
+/** @template {Element} T @param {string} selector @returns {T} */
+function $(selector) {
+  const element = document.querySelector(selector);
+  if (!element) throw new Error(`Missing element: ${selector}`);
+  return /** @type {T} */ (element);
+}
+
+const pad = (/** @type {number} */ number) => String(number).padStart(2, '0');
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-const labels = { focus: 'Фокус', short: 'Короткий отдых', long: 'Длинный отдых' };
-const codes = { clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03', settings: 'SET / 04' };
-const validPomodoro = settings => settings && [settings.focus, settings.short, settings.long].every(value => Number.isInteger(value) && value >= 1 && value <= 180) && Number.isInteger(settings.cycles) && settings.cycles >= 1 && settings.cycles <= 12 && typeof settings.sound === 'boolean' && typeof settings.autoStart === 'boolean';
-const isValidTimeZone = timeZone => {
-  if (typeof timeZone !== 'string' || !timeZone) return false;
-  try { new Intl.DateTimeFormat('en-US', { timeZone }); return true; } catch { return false; }
-};
-const defaults = { focus: 25, short: 5, long: 15, cycles: 4, sound: true, autoStart: false, clockFormat24: true, timeZone: browserTimeZone, timeZoneLabel: '' };
-const normalizeSettings = saved => {
-  if (!validPomodoro(saved)) return { ...defaults };
-  return {
-    ...defaults,
-    focus: saved.focus,
-    short: saved.short,
-    long: saved.long,
-    cycles: saved.cycles,
-    sound: saved.sound,
-    autoStart: saved.autoStart,
-    clockFormat24: typeof saved.clockFormat24 === 'boolean' ? saved.clockFormat24 : defaults.clockFormat24,
-    timeZone: isValidTimeZone(saved.timeZone) ? saved.timeZone : browserTimeZone,
-    timeZoneLabel: typeof saved.timeZoneLabel === 'string' ? saved.timeZoneLabel.trim().slice(0, 80) : ''
-  };
-};
+const labels = /** @type {Record<Phase, string>} */ ({ focus: 'Фокус', short: 'Короткий отдых', long: 'Длинный отдых' });
+const codes = /** @type {Record<View, string>} */ ({ clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03', settings: 'SET / 04' });
+const preferencesKey = '6am-preferences';
+const runtimeKey = '6am-runtime';
 
-let settings = { ...defaults };
-try {
-  const saved = JSON.parse(localStorage.getItem('6am-preferences') || localStorage.getItem('winter-arc-preferences') || 'null');
-  settings = normalizeSettings(saved);
-} catch {}
+/** @param {string} key */
+function readStoredJson(key) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
+}
 
-let supportedTimeZones = [];
-try { supportedTimeZones = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : []; } catch {}
-supportedTimeZones = [...new Set([...supportedTimeZones, settings.timeZone, browserTimeZone, 'UTC'])].filter(isValidTimeZone).sort((left, right) => left.localeCompare(right));
+const savedPreferences = readStoredJson(preferencesKey) ?? readStoredJson('winter-arc-preferences');
+/** @type {Settings} */
+let settings = normalizeSettings(savedPreferences, browserTimeZone);
+const restored = normalizeRuntime(readStoredJson(runtimeKey), settings);
 
-const duration = phase => settings[phase] * 60000;
-const countdown = milliseconds => {
-  const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
-  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
-};
-const elapsed = (stopwatch, now = Date.now()) => stopwatch.accumulated + (stopwatch.startedAt === null ? 0 : Math.max(0, now - stopwatch.startedAt));
-const elapsedText = milliseconds => {
-  const seconds = Math.floor(Math.max(0, milliseconds) / 1000);
-  return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
-};
+const hashView = location.hash.slice(1);
 const state = {
-  view: codes[location.hash.slice(1)] ? location.hash.slice(1) : 'clock',
+  view: /** @type {View} */ (Object.hasOwn(codes, hashView) ? hashView : 'clock'),
   now: Date.now(),
-  pomodoro: { phase: 'focus', remaining: duration('focus'), deadline: null, completed: 0, notice: '' },
-  stopwatch: { accumulated: 0, startedAt: null, laps: [] }
+  pomodoro: restored.runtime.pomodoro,
+  stopwatch: restored.runtime.stopwatch
 };
 
+/** @type {AudioContext | null} */
 let audio = null;
 let stopwatchFrame = 0;
+let tickTimer = 0;
+let lastClockSecond = -1;
+let lastClockRuleSecond = -1;
+let lastPomodoroSecond = -1;
 const resetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
 const lapIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l14 16M19 4L5 20M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
 
@@ -61,100 +69,124 @@ $('#pomodoro-reset').innerHTML = resetIcon;
 $('#stopwatch-reset').innerHTML = resetIcon;
 $('#stopwatch-lap').innerHTML = lapIcon;
 
+function persistRuntime() {
+  return saveJson(localStorage, runtimeKey, runtimeSnapshot({ pomodoro: state.pomodoro, stopwatch: state.stopwatch }));
+}
+
 function saveSettings() {
-  try { localStorage.setItem('6am-preferences', JSON.stringify(settings)); } catch {}
+  return saveJson(localStorage, preferencesKey, settings);
+}
+
+/** @returns {string[]} */
+function browserSupportedTimeZones() {
+  try {
+    const supportedValuesOf = /** @type {{ supportedValuesOf?: (key: 'timeZone') => string[] }} */ (Intl).supportedValuesOf;
+    return supportedValuesOf ? supportedValuesOf('timeZone') : [];
+  } catch {
+    return [];
+  }
+}
+
+const supportedTimeZones = buildTimeZones(browserSupportedTimeZones(), settings.timeZone, browserTimeZone);
+
+/** @param {string} timeZone */
+function timeZoneOptionLabel(timeZone) {
+  const parts = timeZone.split('/');
+  const city = (parts.at(-1) || timeZone).replaceAll('_', ' ');
+  const region = parts.length > 1 ? parts[0] : 'Universal';
+  let offset = 'UTC';
+  try {
+    const zoneName = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset' })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'timeZoneName')?.value;
+    if (zoneName) offset = zoneName.replace('GMT', 'UTC');
+  } catch {}
+  return `${city} — ${region} · ${offset}`;
 }
 
 function populateTimeZones() {
-  const select = $('#time-zone-select');
-  select.replaceChildren();
-  supportedTimeZones.forEach(timeZone => {
+  const datalist = /** @type {HTMLDataListElement} */ ($('#time-zone-options'));
+  const options = supportedTimeZones.map((timeZone) => {
     const option = document.createElement('option');
     option.value = timeZone;
-    option.textContent = timeZone;
-    select.append(option);
+    option.label = timeZoneOptionLabel(timeZone);
+    return option;
   });
+  datalist.replaceChildren(...options);
 }
 
 function syncClockSettings() {
-  $('#clock-format').checked = settings.clockFormat24;
-  $('#time-zone-select').value = settings.timeZone;
-  $('#time-zone-label').value = settings.timeZoneLabel;
+  /** @type {HTMLInputElement} */ ($('#clock-format')).checked = settings.clockFormat24;
+  /** @type {HTMLInputElement} */ ($('#time-zone-input')).value = settings.timeZone;
+  /** @type {HTMLInputElement} */ ($('#time-zone-label')).value = settings.timeZoneLabel;
 }
 
-function updateStopwatch() {
-  if (state.stopwatch.startedAt === null) { stopwatchFrame = 0; return; }
-  renderStopwatch();
-  stopwatchFrame = requestAnimationFrame(updateStopwatch);
-}
-
-function startStopwatchFrame() { if (!stopwatchFrame) stopwatchFrame = requestAnimationFrame(updateStopwatch); }
-
-function status(element, text, running) {
+/** @param {HTMLElement} element @param {string} text @param {boolean} running */
+function setStatus(element, text, running) {
   element.classList.toggle('running', running);
-  element.innerHTML = `<i></i>${text}`;
+  const dot = element.querySelector('i') || document.createElement('i');
+  element.replaceChildren(dot, document.createTextNode(text));
 }
 
-function sound() {
-  if (!settings.sound || !audio) return;
-  [0, .25, .5].forEach(offset => {
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.connect(gain);
-    gain.connect(audio.destination);
-    oscillator.frequency.value = 660;
-    const start = audio.currentTime + offset;
-    gain.gain.setValueAtTime(.001, start);
-    gain.gain.exponentialRampToValueAtTime(.13, start + .015);
-    gain.gain.exponentialRampToValueAtTime(.001, start + .2);
-    oscillator.start(start);
-    oscillator.stop(start + .22);
-  });
+/** @param {number} milliseconds */
+function countdown(milliseconds) {
+  const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
 }
 
-function enableAudio() {
-  try { audio ||= new AudioContext(); audio.resume(); } catch { $('#settings-error').textContent = 'Звук недоступен. Завершение появится на экране.'; }
-}
-
-function advance(now) {
-  const timer = state.pomodoro;
-  if (timer.deadline === null) return 0;
-  let count = 0;
-  while (timer.deadline <= now && count < 100) {
-    const focus = timer.phase === 'focus';
-    timer.completed += focus ? 1 : 0;
-    timer.phase = focus ? (timer.completed % settings.cycles === 0 ? 'long' : 'short') : 'focus';
-    timer.remaining = duration(timer.phase);
-    timer.notice = focus ? 'Сессия завершена. Время отдохнуть.' : 'Отдых завершён. Можно возвращаться к работе.';
-    count++;
-    timer.deadline = settings.autoStart ? timer.deadline + duration(timer.phase) : null;
+function updateDocumentTitle() {
+  if (state.pomodoro.deadline !== null) {
+    const remaining = countdown(state.pomodoro.remaining);
+    document.title = `${remaining} · ${labels[state.pomodoro.phase]} — 6.am`;
+  } else {
+    document.title = '6.am — Время';
   }
-  if (timer.deadline !== null) timer.remaining = Math.max(0, timer.deadline - now);
-  return count;
 }
 
-function tabs() {
-  document.querySelectorAll('[data-view]').forEach(tab => {
+function renderTabs() {
+  document.querySelectorAll('[data-view]').forEach((element) => {
+    const tab = /** @type {HTMLElement} */ (element);
     const active = tab.dataset.view === state.view;
-    tab.setAttribute('aria-selected', active);
-    tab.setAttribute('aria-current', active ? 'page' : 'false');
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
   });
-  document.querySelectorAll('[data-panel]').forEach(panel => panel.hidden = panel.dataset.panel !== state.view);
+  document.querySelectorAll('[data-panel]').forEach((element) => {
+    const panel = /** @type {HTMLElement} */ (element);
+    panel.hidden = panel.dataset.panel !== state.view;
+  });
   $('#section-code').textContent = codes[state.view];
-  $('[data-running="stopwatch"]').hidden = state.stopwatch.startedAt === null;
-  $('[data-running="pomodoro"]').hidden = state.pomodoro.deadline === null;
+  /** @type {HTMLElement} */ ($('[data-running="stopwatch"]')).hidden = state.stopwatch.startedAt === null;
+  /** @type {HTMLElement} */ ($('[data-running="pomodoro"]')).hidden = state.pomodoro.deadline === null;
+}
+
+function renderPhaseButtons() {
+  document.querySelectorAll('[data-phase]').forEach((element) => {
+    const button = /** @type {HTMLButtonElement} */ (element);
+    const selected = button.dataset.phase === state.pomodoro.phase;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+/** @param {number} visible */
+function renderSessionMarks(visible) {
+  const marks = $('#session-marks');
+  if (marks.childElementCount !== settings.cycles) {
+    marks.replaceChildren(...Array.from({ length: settings.cycles }, () => document.createElement('b')));
+  }
+  [...marks.children].forEach((mark, index) => mark.classList.toggle('complete', index < visible));
 }
 
 function renderPomodoro() {
   const timer = state.pomodoro;
   const running = timer.deadline !== null;
-  const total = duration(timer.phase);
+  const total = duration(settings, timer.phase);
   const progress = Math.min(100, Math.max(0, 100 * (1 - timer.remaining / total)));
   const remaining = countdown(timer.remaining);
   const done = timer.completed % settings.cycles;
   const visible = timer.phase === 'long' && done === 0 && timer.completed > 0 ? settings.cycles : done;
   const session = timer.phase === 'focus' ? done + 1 : done || settings.cycles;
-  status($('#pomodoro-status'), running ? 'Идёт отсчёт' : timer.remaining < total ? 'На паузе' : 'Готов к старту', running);
+  setStatus(/** @type {HTMLElement} */ ($('#pomodoro-status')), running ? 'Идёт отсчёт' : timer.remaining < total ? 'На паузе' : 'Готов к старту', running);
   $('#pomodoro-heading').textContent = timer.phase === 'focus' ? 'Время сосредоточиться.' : 'Пауза тоже часть работы.';
   $('#pomodoro-digits').innerHTML = `${remaining.split(':')[0]}<span>:</span>${remaining.split(':')[1]}`;
   $('#pomodoro-digits').setAttribute('aria-label', `Осталось ${remaining}`);
@@ -163,23 +195,29 @@ function renderPomodoro() {
   $('#pomodoro-notice').textContent = timer.notice;
   $('#progress-label').textContent = labels[timer.phase];
   $('#progress-value').textContent = `${settings[timer.phase]} мин · ${Math.floor(progress)}%`;
-  $('#progress-indicator').style.width = `${progress}%`;
+  /** @type {HTMLElement} */ ($('#progress-indicator')).style.width = `${progress}%`;
   $('#session-marks').setAttribute('aria-label', `Завершено в цикле: ${visible} из ${settings.cycles}`);
-  $('#session-marks').innerHTML = Array.from({ length: settings.cycles }, (_, index) => `<b class="${index < visible ? 'complete' : ''}"></b>`).join('');
-  document.querySelectorAll('[data-phase]').forEach(button => button.classList.toggle('selected', button.dataset.phase === timer.phase));
-  document.title = running ? `${remaining} · ${labels[timer.phase]} — 6.am` : '6.am — Время';
+  renderSessionMarks(visible);
+  renderPhaseButtons();
+  updateDocumentTitle();
 }
 
+/** @param {Date} date */
 function zonedParts(date) {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: settings.timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(date);
-  return Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+  return Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
 }
 
+/** @param {number} hour */
 function greeting(hour) {
   if (hour >= 5 && hour < 12) return 'Good morning.';
   if (hour < 17) return 'Good afternoon.';
   if (hour < 22) return 'Good evening.';
   return 'Good night.';
+}
+
+function initializeClockRule() {
+  $('#clock-rule').replaceChildren(...Array.from({ length: 60 }, () => document.createElement('i')));
 }
 
 function renderClock() {
@@ -191,130 +229,352 @@ function renderClock() {
   $('#clock-digits').setAttribute('aria-label', time);
   $('#date-label').textContent = new Intl.DateTimeFormat('ru-RU', { timeZone: settings.timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   $('#time-zone').textContent = settings.timeZoneLabel || settings.timeZone.replaceAll('_', ' ');
-  $('#clock-rule').innerHTML = Array.from({ length: 60 }, (_, index) => `<i class="${index <= Number(parts.second) ? 'elapsed' : ''}"></i>`).join('');
+  const second = Number(parts.second);
+  const marks = [...$('#clock-rule').children];
+  if (lastClockRuleSecond < 0 || second < lastClockRuleSecond) {
+    marks.forEach((mark, index) => mark.classList.toggle('elapsed', index <= second));
+  } else {
+    for (let index = lastClockRuleSecond + 1; index <= second; index += 1) marks[index]?.classList.add('elapsed');
+  }
+  lastClockRuleSecond = second;
+}
+
+/** @param {number} milliseconds */
+function elapsedText(milliseconds) {
+  const seconds = Math.floor(Math.max(0, milliseconds) / 1000);
+  return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
+}
+
+function renderStopwatchTime() {
+  const time = elapsed(state.stopwatch);
+  $('#stopwatch-digits').innerHTML = `${elapsedText(time)}<small class="hundredths">.${pad(Math.floor(time % 1000 / 10))}</small>`;
+}
+
+function renderLaps() {
+  const laps = state.stopwatch.laps;
+  /** @type {HTMLElement} */ ($('#laps-empty')).hidden = laps.length > 0;
+  /** @type {HTMLElement} */ ($('#laps')).hidden = laps.length === 0;
+  $('#laps-body').innerHTML = laps.map((lap, index) => {
+    const previous = laps[index - 1] || 0;
+    const lapTime = lap - previous;
+    return `<tr><td>${pad(index + 1)}</td><td>${elapsedText(lapTime)}.${pad(Math.floor(lapTime % 1000 / 10))}</td><td>${elapsedText(lap)}.${pad(Math.floor(lap % 1000 / 10))}</td></tr>`;
+  }).reverse().join('');
 }
 
 function renderStopwatch() {
   const time = elapsed(state.stopwatch);
   const running = state.stopwatch.startedAt !== null;
-  status($('#stopwatch-status'), running ? 'Идёт отсчёт' : time ? 'На паузе' : 'Готов к старту', running);
-  $('#stopwatch-digits').innerHTML = `${elapsedText(time)}<small class="hundredths">.${pad(Math.floor(time % 1000 / 10))}</small>`;
+  setStatus(/** @type {HTMLElement} */ ($('#stopwatch-status')), running ? 'Идёт отсчёт' : time ? 'На паузе' : 'Готов к старту', running);
+  renderStopwatchTime();
   $('#stopwatch-toggle').innerHTML = `<span>${running ? 'Пауза' : time ? 'Продолжить' : 'Начать'}</span>`;
-  $('#stopwatch-reset').disabled = time === 0;
-  $('#stopwatch-lap').disabled = !running || state.stopwatch.laps.length >= 100;
-  $('#laps-empty').hidden = state.stopwatch.laps.length > 0;
-  $('#laps').hidden = state.stopwatch.laps.length === 0;
-  $('#laps-body').innerHTML = state.stopwatch.laps.map((lap, index) => {
-    const previous = state.stopwatch.laps[index - 1] || 0;
-    return `<tr><td>${pad(index + 1)}</td><td>${elapsedText(lap - previous)}.${pad(Math.floor((lap - previous) % 1000 / 10))}</td><td>${elapsedText(lap)}.${pad(Math.floor(lap % 1000 / 10))}</td></tr>`;
-  }).reverse().join('');
+  /** @type {HTMLButtonElement} */ ($('#stopwatch-reset')).disabled = time === 0;
+  /** @type {HTMLButtonElement} */ ($('#stopwatch-lap')).disabled = !running || state.stopwatch.laps.length >= 100;
+  renderLaps();
 }
 
-function render() { tabs(); renderPomodoro(); renderClock(); renderStopwatch(); }
+function stopStopwatchFrame() {
+  if (stopwatchFrame) cancelAnimationFrame(stopwatchFrame);
+  stopwatchFrame = 0;
+}
 
-document.querySelectorAll('[data-view]').forEach(tab => tab.addEventListener('click', () => {
-  if (!codes[tab.dataset.view]) return;
-  state.view = tab.dataset.view;
-  history.replaceState(null, '', `#${state.view}`);
-  tabs();
-}));
-window.addEventListener('hashchange', () => {
-  if (!codes[location.hash.slice(1)]) return;
-  state.view = location.hash.slice(1);
-  tabs();
+function updateStopwatchFrame() {
+  if (document.hidden || state.view !== 'stopwatch' || state.stopwatch.startedAt === null) {
+    stopwatchFrame = 0;
+    return;
+  }
+  renderStopwatchTime();
+  stopwatchFrame = requestAnimationFrame(updateStopwatchFrame);
+}
+
+function startStopwatchFrame() {
+  if (!stopwatchFrame && !document.hidden && state.view === 'stopwatch' && state.stopwatch.startedAt !== null) {
+    stopwatchFrame = requestAnimationFrame(updateStopwatchFrame);
+  }
+}
+
+function playCompletionSound() {
+  if (!settings.sound || !audio) return;
+  const context = audio;
+  try {
+    [0, .25, .5].forEach((offset) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.frequency.value = 660;
+      const start = context.currentTime + offset;
+      gain.gain.setValueAtTime(.001, start);
+      gain.gain.exponentialRampToValueAtTime(.13, start + .015);
+      gain.gain.exponentialRampToValueAtTime(.001, start + .2);
+      oscillator.start(start);
+      oscillator.stop(start + .22);
+    });
+  } catch {
+    state.pomodoro.notice = 'Звук недоступен. Завершение этапа показано на экране.';
+  }
+}
+
+async function enableAudio() {
+  if (!settings.sound) return true;
+  try {
+    const AudioContextConstructor = window.AudioContext;
+    if (!AudioContextConstructor) return false;
+    audio ||= new AudioContextConstructor();
+    if (audio.state === 'suspended') await audio.resume();
+    return audio.state !== 'closed';
+  } catch {
+    audio = null;
+    return false;
+  }
+}
+
+/** @param {number} now */
+function catchUpPomodoro(now) {
+  const advanced = advancePomodoro(state.pomodoro, settings, now);
+  state.pomodoro = advanced.timer;
+  if (advanced.transitions) {
+    persistRuntime();
+    playCompletionSound();
+    renderTabs();
+  }
+  return advanced.transitions;
+}
+
+function renderActivePanel() {
+  state.now = Date.now();
+  catchUpPomodoro(state.now);
+  if (state.view === 'clock') renderClock();
+  if (state.view === 'pomodoro') renderPomodoro();
+  if (state.view === 'stopwatch') renderStopwatch();
+  updateDocumentTitle();
+  startStopwatchFrame();
+}
+
+function stopTicking() {
+  if (tickTimer) clearTimeout(tickTimer);
+  tickTimer = 0;
+}
+
+function scheduleTick() {
+  stopTicking();
+  if (document.hidden || (state.view !== 'clock' && state.pomodoro.deadline === null)) return;
+  const delay = 1_000 - (Date.now() % 1_000) + 20;
+  tickTimer = window.setTimeout(runTick, delay);
+}
+
+function runTick() {
+  tickTimer = 0;
+  if (document.hidden) return;
+  state.now = Date.now();
+  const transitions = catchUpPomodoro(state.now);
+  const pomodoroSecond = Math.ceil(state.pomodoro.remaining / 1_000);
+  if (state.view === 'pomodoro' && (transitions || pomodoroSecond !== lastPomodoroSecond)) {
+    lastPomodoroSecond = pomodoroSecond;
+    renderPomodoro();
+  }
+  const clockSecond = Math.floor(state.now / 1_000);
+  if (state.view === 'clock' && clockSecond !== lastClockSecond) {
+    lastClockSecond = clockSecond;
+    renderClock();
+  }
+  updateDocumentTitle();
+  scheduleTick();
+}
+
+/** @param {View} view @param {boolean} [updateHistory] */
+function activateView(view, updateHistory = true) {
+  if (state.view !== view) {
+    state.view = view;
+    if (updateHistory) history.replaceState(null, '', `#${view}`);
+  }
+  stopStopwatchFrame();
+  renderTabs();
+  renderActivePanel();
+  scheduleTick();
+}
+
+const tabs = [...document.querySelectorAll('[data-view]')].map((element) => /** @type {HTMLAnchorElement} */ (element));
+tabs.forEach((tab, tabIndex) => {
+  tab.addEventListener('click', (event) => {
+    const view = tab.dataset.view;
+    if (!view || !Object.hasOwn(codes, view)) return;
+    event.preventDefault();
+    activateView(/** @type {View} */ (view));
+  });
+  tab.addEventListener('keydown', (event) => {
+    let nextIndex = -1;
+    if (event.key === 'ArrowRight') nextIndex = (tabIndex + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (tabIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (nextIndex < 0) return;
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    nextTab.focus();
+    activateView(/** @type {View} */ (nextTab.dataset.view));
+  });
 });
-document.querySelectorAll('[data-phase]').forEach(button => button.addEventListener('click', () => {
-  state.pomodoro.phase = button.dataset.phase;
-  state.pomodoro.remaining = duration(state.pomodoro.phase);
-  state.pomodoro.deadline = null;
-  state.pomodoro.notice = '';
-  render();
-}));
-$('#pomodoro-toggle').addEventListener('click', () => {
+
+window.addEventListener('hashchange', () => {
+  const view = location.hash.slice(1);
+  if (Object.hasOwn(codes, view)) activateView(/** @type {View} */ (view), false);
+});
+
+document.querySelectorAll('[data-phase]').forEach((element) => {
+  const button = /** @type {HTMLButtonElement} */ (element);
+  button.addEventListener('click', () => {
+    const phase = /** @type {Phase} */ (button.dataset.phase);
+    if (phase === state.pomodoro.phase) return;
+    if (state.pomodoro.deadline !== null && !window.confirm('Сменить этап и сбросить текущий прогресс?')) return;
+    state.pomodoro = { phase, remaining: duration(settings, phase), deadline: null, completed: state.pomodoro.completed, notice: '' };
+    persistRuntime();
+    renderTabs();
+    renderPomodoro();
+    scheduleTick();
+  });
+});
+
+$('#pomodoro-toggle').addEventListener('click', async () => {
+  const button = /** @type {HTMLButtonElement} */ ($('#pomodoro-toggle'));
   const now = Date.now();
   if (state.pomodoro.deadline !== null) {
     state.pomodoro.remaining = Math.max(0, state.pomodoro.deadline - now);
     state.pomodoro.deadline = null;
   } else {
-    if (settings.sound) enableAudio();
-    state.pomodoro.deadline = now + state.pomodoro.remaining;
-    state.pomodoro.notice = '';
+    button.disabled = true;
+    const audioReady = await enableAudio();
+    button.disabled = false;
+    state.pomodoro.deadline = Date.now() + state.pomodoro.remaining;
+    state.pomodoro.notice = audioReady ? '' : 'Звук недоступен. Таймер продолжит работу без сигнала.';
   }
-  render();
+  persistRuntime();
+  renderTabs();
+  renderPomodoro();
+  scheduleTick();
 });
+
 $('#pomodoro-reset').addEventListener('click', () => {
-  state.pomodoro.remaining = duration(state.pomodoro.phase);
+  state.pomodoro.remaining = duration(settings, state.pomodoro.phase);
   state.pomodoro.deadline = null;
   state.pomodoro.notice = '';
-  render();
+  persistRuntime();
+  renderTabs();
+  renderPomodoro();
+  scheduleTick();
 });
+
 $('#stopwatch-toggle').addEventListener('click', () => {
   if (state.stopwatch.startedAt !== null) {
     state.stopwatch.accumulated = elapsed(state.stopwatch);
     state.stopwatch.startedAt = null;
+    stopStopwatchFrame();
   } else {
     state.stopwatch.startedAt = Date.now();
-    startStopwatchFrame();
   }
-  render();
+  persistRuntime();
+  renderTabs();
+  renderStopwatch();
+  startStopwatchFrame();
 });
-$('#stopwatch-reset').addEventListener('click', () => { state.stopwatch = { accumulated: 0, startedAt: null, laps: [] }; render(); });
+
+$('#stopwatch-reset').addEventListener('click', () => {
+  stopStopwatchFrame();
+  state.stopwatch = { accumulated: 0, startedAt: null, laps: [] };
+  persistRuntime();
+  renderTabs();
+  renderStopwatch();
+});
+
 $('#stopwatch-lap').addEventListener('click', () => {
   if (state.stopwatch.startedAt !== null && state.stopwatch.laps.length < 100) {
     state.stopwatch.laps.push(elapsed(state.stopwatch));
+    persistRuntime();
     renderStopwatch();
   }
 });
+
 $('#clock-format').addEventListener('change', () => {
-  settings = { ...settings, clockFormat24: $('#clock-format').checked };
+  settings = { ...settings, clockFormat24: /** @type {HTMLInputElement} */ ($('#clock-format')).checked };
+  state.now = Date.now();
   renderClock();
 });
-$('#clock-settings-form').addEventListener('submit', event => {
+
+$('#clock-settings-form').addEventListener('submit', (event) => {
   event.preventDefault();
-  const timeZone = $('#time-zone-select').value;
+  const timeZone = /** @type {HTMLInputElement} */ ($('#time-zone-input')).value.trim();
   $('#clock-settings-error').textContent = '';
+  $('#clock-settings-feedback').textContent = '';
   if (!isValidTimeZone(timeZone)) {
-    $('#clock-settings-error').textContent = 'Выбери доступный часовой пояс.';
+    $('#clock-settings-error').textContent = 'Введи корректный часовой пояс IANA, например Europe/Moscow.';
     return;
   }
-  settings = { ...settings, clockFormat24: $('#clock-format').checked, timeZone, timeZoneLabel: $('#time-zone-label').value.trim().slice(0, 80) };
-  saveSettings();
-  $('#clock-settings-feedback').textContent = 'Настройки часов сохранены на этом устройстве.';
+  settings = {
+    ...settings,
+    clockFormat24: /** @type {HTMLInputElement} */ ($('#clock-format')).checked,
+    timeZone,
+    timeZoneLabel: /** @type {HTMLInputElement} */ ($('#time-zone-label')).value.trim().slice(0, 80)
+  };
+  if (saveSettings()) {
+    $('#clock-settings-feedback').textContent = 'Настройки часов сохранены на этом устройстве.';
+  } else {
+    $('#clock-settings-error').textContent = 'Не удалось сохранить настройки. Они действуют только до закрытия страницы.';
+  }
+  state.now = Date.now();
   renderClock();
 });
-$('#settings-form').addEventListener('submit', event => {
+
+$('#settings-form').addEventListener('submit', (event) => {
   event.preventDefault();
-  const next = { ...settings, focus: Number($('#focus-input').value), short: Number($('#short-input').value), long: Number($('#long-input').value), cycles: Number($('#cycles-input').value), sound: $('#sound-input').checked, autoStart: $('#auto-start-input').checked };
+  const next = {
+    ...settings,
+    focus: Number(/** @type {HTMLInputElement} */ ($('#focus-input')).value),
+    short: Number(/** @type {HTMLInputElement} */ ($('#short-input')).value),
+    long: Number(/** @type {HTMLInputElement} */ ($('#long-input')).value),
+    cycles: Number(/** @type {HTMLInputElement} */ ($('#cycles-input')).value),
+    sound: /** @type {HTMLInputElement} */ ($('#sound-input')).checked,
+    autoStart: /** @type {HTMLInputElement} */ ($('#auto-start-input')).checked
+  };
   $('#settings-error').textContent = '';
-  if (!validPomodoro(next)) {
+  $('#settings-feedback').textContent = '';
+  if (!validPomodoroSettings(next)) {
     $('#settings-error').textContent = 'Укажи целые минуты от 1 до 180 и число сессий от 1 до 12.';
     return;
   }
-  settings = next;
-  state.pomodoro = { phase: 'focus', remaining: duration('focus'), deadline: null, completed: 0, notice: '' };
-  saveSettings();
-  $('#settings-feedback').textContent = 'Настройки сохранены на этом устройстве.';
-  render();
+  settings = /** @type {Settings} */ (next);
+  state.pomodoro = createRuntime(settings).pomodoro;
+  persistRuntime();
+  if (saveSettings()) {
+    $('#settings-feedback').textContent = 'Настройки сохранены на этом устройстве.';
+  } else {
+    $('#settings-error').textContent = 'Не удалось сохранить настройки. Они действуют только до закрытия страницы.';
+  }
+  renderTabs();
+  if (state.view === 'pomodoro') renderPomodoro();
+  scheduleTick();
 });
 
-[['focus', 'focus-input'], ['short', 'short-input'], ['long', 'long-input'], ['cycles', 'cycles-input']].forEach(([key, id]) => { $(`#${id}`).value = settings[key]; });
-$('#sound-input').checked = settings.sound;
-$('#auto-start-input').checked = settings.autoStart;
+/** @type {Array<[keyof Settings, string]>} */
+const settingInputs = [['focus', 'focus-input'], ['short', 'short-input'], ['long', 'long-input'], ['cycles', 'cycles-input']];
+settingInputs.forEach(([key, id]) => { /** @type {HTMLInputElement} */ ($(`#${id}`)).value = String(settings[key]); });
+/** @type {HTMLInputElement} */ ($('#sound-input')).checked = settings.sound;
+/** @type {HTMLInputElement} */ ($('#auto-start-input')).checked = settings.autoStart;
 populateTimeZones();
 syncClockSettings();
+initializeClockRule();
+
 document.addEventListener('visibilitychange', () => {
-  state.now = Date.now();
-  const completed = advance(state.now);
-  if (completed && settings.sound) sound();
-  render();
-  if (state.stopwatch.startedAt !== null) startStopwatchFrame();
+  if (document.hidden) {
+    stopTicking();
+    stopStopwatchFrame();
+    persistRuntime();
+    return;
+  }
+  renderTabs();
+  renderActivePanel();
+  scheduleTick();
 });
-setInterval(() => {
-  state.now = Date.now();
-  const completed = advance(state.now);
-  if (completed && settings.sound) sound();
-  tabs();
-  renderPomodoro();
-  renderClock();
-}, 250);
-render();
+
+window.addEventListener('pagehide', persistRuntime);
+renderTabs();
+renderActivePanel();
+scheduleTick();

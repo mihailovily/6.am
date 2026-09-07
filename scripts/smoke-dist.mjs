@@ -2,9 +2,12 @@ import { createReadStream } from 'node:fs';
 import { access, readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
+import { normalizeBase, pages } from '../pages.config.js';
 
 const root = resolve('dist');
-const pages = ['/index.html', '/time.html'];
+const baseArgument = process.argv.indexOf('--base');
+const base = normalizeBase(baseArgument >= 0 ? process.argv[baseArgument + 1] || '/' : '/');
+const pagePaths = Object.values(pages).map((page) => `/${page.output}`);
 const contentTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
@@ -14,7 +17,13 @@ const contentTypes = new Map([
 ]);
 
 function fileForUrl(pathname) {
-  const relativePath = decodeURIComponent(pathname === '/' ? '/index.html' : pathname)
+  let pathWithoutBase = pathname;
+  if (base !== '/') {
+    if (pathname === base.slice(0, -1)) pathWithoutBase = '/';
+    else if (pathname.startsWith(base)) pathWithoutBase = `/${pathname.slice(base.length)}`;
+    else throw new Error(`Path is outside configured base ${base}: ${pathname}`);
+  }
+  const relativePath = decodeURIComponent(pathWithoutBase === '/' ? '/index.html' : pathWithoutBase)
     .replace(/^\/+/, '')
     .replaceAll('/', sep);
   const file = resolve(root, relativePath);
@@ -25,7 +34,8 @@ function fileForUrl(pathname) {
 }
 
 function expectedContentType(pathname) {
-  const expected = contentTypes.get(extname(pathname === '/' ? '/index.html' : pathname));
+  const file = fileForUrl(pathname);
+  const expected = contentTypes.get(extname(file));
   if (!expected) throw new Error(`No expected MIME type configured for ${pathname}`);
   return expected;
 }
@@ -49,9 +59,10 @@ await new Promise((resolveListening) => server.once('listening', resolveListenin
 
 try {
   const { port } = server.address();
-  const assets = new Set(pages);
+  const assets = new Set(pagePaths.map((page) => `${base}${page.replace(/^\//, '')}`));
 
-  for (const page of pages) {
+  for (const page of assets) {
+    if (expectedContentType(page) !== 'text/html') continue;
     const html = await readFile(fileForUrl(page), 'utf8');
     for (const match of html.matchAll(/\b(?:href|src)=["']([^"']+)["']/g)) {
       const reference = match[1];
@@ -72,7 +83,7 @@ try {
     }
   }
 
-  console.log(`Smoke check passed: ${pages.length} pages, ${assets.size - pages.length} local assets.`);
+  console.log(`Smoke check passed at ${base}: ${pagePaths.length} pages, ${assets.size - pagePaths.length} local references.`);
 } finally {
   server.close();
 }

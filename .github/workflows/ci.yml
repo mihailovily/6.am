@@ -15,17 +15,20 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npm test
       - run: npm run build
       - run: npm run smoke
+      - run: npm run build -- --base /6-am-test/
+      - run: npm run smoke -- --base /6-am-test/
       - name: Smoke-test production preview
         shell: bash
         run: |
-          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > preview.log 2>&1 &
+          npm run preview -- --base /6-am-test/ --host 127.0.0.1 --port 4173 --strictPort > preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid"' EXIT
 
           for attempt in {1..20}; do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/ > /dev/null; then
+            if curl --fail --silent --show-error http://127.0.0.1:4173/6-am-test/ > /dev/null; then
               break
             fi
             if ! kill -0 "$preview_pid" 2>/dev/null; then
@@ -35,5 +38,5 @@ jobs:
             sleep 0.5
           done
 
-          curl --fail --silent --show-error http://127.0.0.1:4173/ > /dev/null
-          curl --fail --silent --show-error http://127.0.0.1:4173/time.html > /dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4173/6-am-test/ > /dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4173/6-am-test/time.html > /dev/null

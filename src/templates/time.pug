@@ -13,32 +13,32 @@ html(lang="ru", class="dark")
       main
         .navigation
           .mode-tabs(role="tablist", aria-label="Режим времени")
-            a#tab-clock.mode-tab(href="#clock", role="tab", data-view="clock")
+            a#tab-clock.mode-tab(href="#clock", role="tab", aria-controls="panel-clock", tabindex="0", data-view="clock")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   circle(cx="12", cy="12", r="9")
                   path(d="M12 7v5l3 2")
               | Часы
-            a#tab-stopwatch.mode-tab(href="#stopwatch", role="tab", data-view="stopwatch")
+            a#tab-stopwatch.mode-tab(href="#stopwatch", role="tab", aria-controls="panel-stopwatch", tabindex="-1", data-view="stopwatch")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   circle(cx="12", cy="13", r="7")
                   path(d="M12 2v4M9 2h6M17 8l2-2")
               | Секундомер
               span.tab-dot(data-running="stopwatch", hidden)
-            a#tab-pomodoro.mode-tab(href="#pomodoro", role="tab", data-view="pomodoro")
+            a#tab-pomodoro.mode-tab(href="#pomodoro", role="tab", aria-controls="panel-pomodoro", tabindex="-1", data-view="pomodoro")
               span.tab-icon(aria-hidden="true")
                 svg(viewBox="0 0 24 24")
                   path(d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4")
               | Помодоро
               span.tab-dot(data-running="pomodoro", hidden)
-            a#tab-settings.mode-tab(href="#settings", role="tab", data-view="settings")
+            a#tab-settings.mode-tab(href="#settings", role="tab", aria-controls="panel-settings", tabindex="-1", data-view="settings")
               span.tab-icon(aria-hidden="true")
                 +settingsIcon
               | Настройки
           span.section-code#section-code TIME / 01
 
-        section.view-panel(data-panel="pomodoro", role="tabpanel", aria-labelledby="tab-pomodoro")
+        section#panel-pomodoro.view-panel(data-panel="pomodoro", role="tabpanel", aria-labelledby="tab-pomodoro", tabindex="0")
           .work-grid
             section.timer-panel(aria-label="Помодоро")
               .panel-top
@@ -48,9 +48,9 @@ html(lang="ru", class="dark")
               .timer-center
                 h1#pomodoro-heading Время сосредоточиться.
                 .phase-choice(role="group", aria-label="Этап помодоро")
-                  button.phase-button.selected(data-phase="focus") Фокус
-                  button.phase-button(data-phase="short") Короткий отдых
-                  button.phase-button(data-phase="long") Длинный отдых
+                  button.phase-button.selected(data-phase="focus", aria-pressed="true") Фокус
+                  button.phase-button(data-phase="short", aria-pressed="false") Короткий отдых
+                  button.phase-button(data-phase="long", aria-pressed="false") Длинный отдых
                 .timer-digits#pomodoro-digits(role="timer")
                   | 25
                   span :
@@ -70,7 +70,7 @@ html(lang="ru", class="dark")
                 .session-marks#session-marks(aria-label="Завершено в цикле: 0 из 4")
                 p.cycle-caption До длинного отдыха
 
-        section.view-panel(data-panel="clock", role="tabpanel", aria-labelledby="tab-clock", hidden)
+        section#panel-clock.view-panel(data-panel="clock", role="tabpanel", aria-labelledby="tab-clock", tabindex="0", hidden)
           section.alternate-panel
             h1#clock-heading Good morning.
             .timer-digits.clock-digits#clock-digits(role="timer") --:--:--
@@ -79,8 +79,8 @@ html(lang="ru", class="dark")
               span#time-zone
             .clock-rule#clock-rule(aria-hidden="true")
 
-        section.view-panel(data-panel="stopwatch", role="tabpanel", aria-labelledby="tab-stopwatch", hidden)
-          section.alternate-panel
+        section#panel-stopwatch.view-panel(data-panel="stopwatch", role="tabpanel", aria-labelledby="tab-stopwatch", tabindex="0", hidden)
+          section.alternate-panel.stopwatch-panel
             .panel-top
               span.status#stopwatch-status
                 i
@@ -104,7 +104,7 @@ html(lang="ru", class="dark")
                     th Всего
                 tbody#laps-body
             p.settings-note.alternate-note Секундомер продолжает работать при смене режима. Сброс удаляет круги.
-        section.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", hidden)
+        section#panel-settings.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", tabindex="0", hidden)
           section.settings-panel.settings-view(aria-label="Настройки")
             .settings-heading
               span.settings-icon(aria-hidden="true")
@@ -119,7 +119,8 @@ html(lang="ru", class="dark")
                   input.switch#clock-format(type="checkbox", checked)
                 label.settings-field
                   span Часовой пояс
-                  select#time-zone-select(name="time-zone")
+                  input#time-zone-input(type="text", name="time-zone", list="time-zone-options", autocomplete="off", spellcheck="false", required)
+                  datalist#time-zone-options
                 label.settings-field
                   span Своя подпись
                   input#time-zone-label(type="text", name="time-zone-label", maxlength="80", autocomplete="off", placeholder="Например, Дом")
@@ -148,4 +149,4 @@ html(lang="ru", class="dark")
                 p.feedback.error#settings-error(role="alert")
             p.settings-note.background-note Настройки сохраняются на этом устройстве. При возвращении на страницу время пересчитается.
       include _footer.pug
-    script(src="/src/scripts/time.js", defer)
+    script(type="module", src="/src/scripts/time.js")

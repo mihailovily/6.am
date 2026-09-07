@@ -61,22 +61,24 @@ npm run dev       # локальная разработка
 npm run build     # production-сборка в dist/
 npm run preview   # просмотр dist через Vite
 npm run check     # tsc --noEmit
+npm test          # unit-тесты доменной логики
+npm run smoke     # HTTP/MIME-проверка dist
 ```
 
 `npm run build` запускает `build.mjs`, а не обычный `vite build`. Скрипт:
 
-1. собирает обе страницы из `src/pages`;
-2. переносит сгенерированные `src/pages/index.html` и `src/pages/time.html` в `dist/index.html` и `dist/time.html`;
-3. удаляет временную вложенную директорию `dist/src`;
-4. копирует classic-скрипты в `dist/src/scripts/`.
+1. читает единый реестр страниц из `pages.config.js`;
+2. собирает Pug, CSS и ES modules через Vite;
+3. переносит зарегистрированные HTML outputs в публичный корень `dist/`;
+4. удаляет временную вложенную директорию `dist/src`.
 
 После сборки ожидается:
 
 ```text
 dist/index.html
 dist/time.html
-dist/src/scripts/home.js
-dist/src/scripts/time.js
+dist/assets/*.css
+dist/assets/*.js
 ```
 
 Прямое открытие исходных страниц через `file://` больше не является поддерживаемым сценарием. Использовать `npm run dev` или `npm run preview`.
@@ -85,14 +87,15 @@ dist/src/scripts/time.js
 
 - `src/scripts/home.js` — обработка карточек «скоро» и сообщения в `#home-hint`.
 - `src/scripts/time.js` — переключение режимов, часы с выбираемым IANA-часовым поясом и подписью, секундомер, помодоро, настройки и звуковой сигнал. Настройки открываются отдельным режимом `#settings`.
+- `src/scripts/time-domain.js` — чистые переходы состояния, нормализация настроек/runtime snapshot и fallback часовых поясов.
 
 Ключевые DOM-контракты приложения времени — все элементы с ID в `src/templates/time.pug` (например, `#pomodoro-toggle`, `#clock-digits`, `#stopwatch-toggle`, `#settings-form`). При переименовании ID нужно одновременно менять селекторы в `src/scripts/time.js`.
 
-Настройки хранятся под ключом `6am-preferences`; для обратной совместимости чтение также проверяет `winter-arc-preferences`.
+Настройки хранятся под ключом `6am-preferences`; для обратной совместимости чтение также проверяет `winter-arc-preferences`. Версионированное состояние помодоро и секундомера хранится под ключом `6am-runtime`; работающие таймеры восстанавливаются по абсолютным timestamps.
 
 ## Стили
 
-`src/styles/main.css` — единая точка подключения стилей. Внутри подключаются базовые стили, токены, компоненты, page-specific CSS и legacy-слой. В `src/styles/pages/time.css` закреплены одинаковая высота режимов и layout отдельного блока настроек, чтобы переключение не вызывало скачков.
+`src/styles/main.css` — единая точка подключения стилей. Внутри подключаются базовые стили, токены, компоненты, page-specific CSS и legacy-слой. В `src/styles/pages/time.css` описаны режимы, адаптивная навигация и прокручиваемый список кругов секундомера.
 
 ```text
 src/styles/
@@ -112,12 +115,15 @@ src/styles/
 
 ```bash
 npm run build
-npm run dev
+npm run check
+npm test
+npm run smoke
+npm run preview
 ```
 
-В dev нужно проверить `/` и `/time.html`, а для страницы времени — все три hash-режима. После build проверить наличие `dist/index.html` и `dist/time.html` и отсутствие неотрендеренных `<pug>`-тегов.
+В dev нужно проверить `/` и `/time.html`, а для страницы времени — четыре hash-режима. После build `npm run smoke` проверяет обе страницы, локальные `href/src`, существование ассетов и их MIME.
 
-`npm run check` настроен на обнаружение JavaScript-файлов в `src/`; `checkJs` отключён, поэтому команда проверяет конфигурацию и наличие входов TypeScript без требования переписывать текущую vanilla JavaScript-логику на TypeScript.
+`npm run check` выполняет строгую проверку JavaScript через TypeScript `checkJs`; публичные структуры доменной логики типизированы JSDoc.
 
 ## UI-соглашения
 
@@ -130,7 +136,6 @@ npm run dev
 ## Важные соглашения
 
 - Не возвращать entry-файлы в корень без необходимости: текущая структура специально отделяет исходные страницы от корневой документации и конфигурации.
-- При добавлении новой страницы создать entry в `src/pages`, Pug-шаблон в `src/templates` и добавить его в оба списка input: `vite.config.js` и `build.mjs`.
-- Для новых публичных маршрутов, отличающихся от `/` и `/time.html`, добавить отдельное dev-rewrite правило в `vite.config.js`.
+- При добавлении новой страницы создать entry в `src/pages`, Pug-шаблон в `src/templates` и одну запись в `pages.config.js`.
 - Не менять публичные имена `dist/index.html` и `dist/time.html` без одновременного обновления ссылок и deployment-документации.
-- Стили и скрипты подключаются абсолютными URL `/src/...`, чтобы одинаково работать из dev-маршрутов и собранных страниц.
+- Исходные стили и ES modules подключаются через Vite, который добавляет deployment `base`; внутренние ссылки получают тот же `base` при компиляции Pug.

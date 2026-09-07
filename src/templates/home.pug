@@ -11,7 +11,7 @@ html(lang="ru", class="dark")
         h1.home-title Less noise.<br><span>More focus.</span>
         p.home-intro A set of tools for productive work.
         nav.service-list(aria-label="Сервисы 6.am")
-          a.service-card.service-card-active(href="/time.html")
+          a.service-card.service-card-active(href=base + "time.html")
             span.service-index 01
             span.service-copy
               strong Время
@@ -26,4 +26,4 @@ html(lang="ru", class="dark")
               span.service-status скоро
         p.home-hint#home-hint(role="status") Открытый исходный код · сделано для спокойной работы
       include _footer.pug
-    script(src="/src/scripts/home.js", defer)
+    script(type="module", src="/src/scripts/home.js")

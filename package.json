@@ -8,6 +8,7 @@
     "build": "node build.mjs",
     "preview": "vite preview --configLoader runner",
     "smoke": "node scripts/smoke-dist.mjs",
+    "test": "node --test",
     "check": "tsc --noEmit"
   },
   "devDependencies": {

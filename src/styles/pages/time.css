@@ -28,8 +28,25 @@ main,
 
 .alternate-panel {
   position: relative;
-  height: 580px;
   min-height: 580px;
+}
+
+.stopwatch-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.stopwatch-panel .laps {
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 180px;
+}
+
+.stopwatch-panel thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
 }
 
 .alternate-panel .panel-top {
@@ -136,7 +153,6 @@ main,
   }
 
   .alternate-panel {
-    height: 480px;
     min-height: 480px;
   }
 
@@ -144,6 +160,10 @@ main,
   .view-panel > .alternate-panel,
   .view-panel > .settings-panel {
     min-height: 480px;
+  }
+
+  .view-panel > .stopwatch-panel {
+    min-height: 0;
   }
 
   .settings-panel {
