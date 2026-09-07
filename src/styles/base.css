@@ -36,12 +36,3 @@ input:focus-visible {
 }
 
 [hidden] { display: none !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}

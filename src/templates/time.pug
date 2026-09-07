@@ -13,34 +13,37 @@ html(lang="en", class="dark")
   include _head.pug
   body
     .site-shell
-      include _header.pug
-      main
-        .navigation
-          .mode-tabs(role="tablist", aria-label="Time modes")
-            a#tab-clock.mode-tab(href="#clock", role="tab", aria-controls="panel-clock", tabindex="0", data-view="clock")
-              span.tab-icon(aria-hidden="true")
-                svg(viewBox="0 0 24 24")
-                  circle(cx="12", cy="12", r="9")
-                  path(d="M12 7v5l3 2")
-              | Clock
-            a#tab-stopwatch.mode-tab(href="#stopwatch", role="tab", aria-controls="panel-stopwatch", tabindex="-1", data-view="stopwatch")
-              span.tab-icon(aria-hidden="true")
-                svg(viewBox="0 0 24 24")
-                  circle(cx="12", cy="13", r="7")
-                  path(d="M12 2v4M9 2h6M17 8l2-2")
-              | Stopwatch
-              span.tab-dot(data-running="stopwatch", hidden)
-            a#tab-pomodoro.mode-tab(href="#pomodoro", role="tab", aria-controls="panel-pomodoro", tabindex="-1", data-view="pomodoro")
-              span.tab-icon(aria-hidden="true")
-                svg(viewBox="0 0 24 24")
-                  path(d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4")
-              | Pomodoro
-              span.tab-dot(data-running="pomodoro", hidden)
-            a#tab-settings.mode-tab(href="#settings", role="tab", aria-controls="panel-settings", tabindex="-1", data-view="settings")
-              span.tab-icon(aria-hidden="true")
-                +settingsIcon
-              | Settings
-          span.section-code#section-code TIME / 01
+      header.site-header.time-header
+        a.wordmark(href=base, aria-label="6.am — home")
+          span 6
+            span.wordmark-dot .
+            | am
+        .mode-tabs(role="tablist", aria-label="Time modes")
+          a#tab-clock.mode-tab(href="#clock", role="tab", aria-controls="panel-clock", tabindex="0", data-view="clock")
+            span.tab-icon(aria-hidden="true")
+              svg(viewBox="0 0 24 24")
+                circle(cx="12", cy="12", r="9")
+                path(d="M12 7v5l3 2")
+            span.mode-label Clock
+          a#tab-stopwatch.mode-tab(href="#stopwatch", role="tab", aria-controls="panel-stopwatch", tabindex="-1", data-view="stopwatch")
+            span.tab-icon(aria-hidden="true")
+              svg(viewBox="0 0 24 24")
+                circle(cx="12", cy="13", r="7")
+                path(d="M12 2v4M9 2h6M17 8l2-2")
+            span.mode-label Stopwatch
+            span.tab-dot(data-running="stopwatch", hidden)
+          a#tab-pomodoro.mode-tab(href="#pomodoro", role="tab", aria-controls="panel-pomodoro", tabindex="-1", data-view="pomodoro")
+            span.tab-icon(aria-hidden="true")
+              svg(viewBox="0 0 24 24")
+                path(d="M7 4h10M8 4v4a4 4 0 0 0 2 3.5A4 4 0 0 0 8 15v5h8v-5a4 4 0 0 0-2-3.5A4 4 0 0 0 16 8V4")
+            span.mode-label Pomodoro
+            span.tab-dot(data-running="pomodoro", hidden)
+          a#tab-settings.mode-tab(href="#settings", role="tab", aria-controls="panel-settings", tabindex="-1", data-view="settings")
+            span.tab-icon(aria-hidden="true")
+              +settingsIcon
+            span.mode-label Settings
+        span.section-code#section-code TIME / 01
+      main.time-main
 
         section#panel-pomodoro.view-panel(data-panel="pomodoro", role="tabpanel", aria-labelledby="tab-pomodoro", tabindex="0")
           .work-grid

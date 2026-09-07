@@ -1,14 +1,22 @@
 /* Time page layout and controls. Shared rules live in base.css and components.css. */
 .view-panel[hidden] { display: none !important; }
 
+.view-panel:not([hidden]) { animation: view-panel-enter .22s ease-out; }
+
+@keyframes view-panel-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 main,
-.navigation,
 .mode-tabs,
 .mode-tab,
 .view-panel,
 .alternate-panel {
   min-width: 0;
 }
+
+.time-main { padding-top: 28px; }
 
 .work-grid {
   display: grid;
@@ -120,12 +128,17 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
 
 /* Used both for the native Fullscreen API and its in-page fallback. */
 html.time-fullscreen,
-html.time-fullscreen body { min-height: 100%; background: var(--background); }
+html.time-fullscreen body {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: var(--background);
+}
 
 .time-fullscreen .site-shell { width: 100%; max-width: none; min-height: 100vh; padding: 0; }
 .time-fullscreen .site-header,
-.time-fullscreen .navigation,
 .time-fullscreen footer { display: none; }
+.time-fullscreen .time-main { padding-top: 0; }
 .time-fullscreen main,
 .time-fullscreen .view-panel:not([hidden]) { min-height: 100vh; }
 .time-fullscreen .view-panel > .work-grid { min-height: 100vh; border: 0; border-radius: 0; }
