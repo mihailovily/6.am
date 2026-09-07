@@ -19,6 +19,7 @@ main,
 }
 
 .timer-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -94,6 +95,57 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
   border-radius: 5px;
   background: var(--panel);
   text-align: center;
+}
+
+.fullscreen-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 10px;
+  border: 1px solid var(--border-interactive);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--body-text-secondary);
+  font-size: .75rem;
+}
+
+.fullscreen-button:hover { color: var(--foreground); }
+.fullscreen-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+
+/* Used both for the native Fullscreen API and its in-page fallback. */
+html.time-fullscreen,
+html.time-fullscreen body { min-height: 100%; background: var(--background); }
+
+.time-fullscreen .site-shell { width: 100%; max-width: none; min-height: 100vh; padding: 0; }
+.time-fullscreen .site-header,
+.time-fullscreen .navigation,
+.time-fullscreen footer { display: none; }
+.time-fullscreen main,
+.time-fullscreen .view-panel:not([hidden]) { min-height: 100vh; }
+.time-fullscreen .view-panel > .work-grid { min-height: 100vh; border: 0; border-radius: 0; }
+.time-fullscreen .timer-panel,
+.time-fullscreen .alternate-panel {
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 80px);
+  border: 0;
+  border-radius: 0;
+  background: var(--background);
+}
+.time-fullscreen .alternate-panel:not(.stopwatch-panel) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.time-fullscreen .timer-center { padding: clamp(24px, 4vh, 56px) 0; }
+.time-fullscreen .timer-digits {
+  font-size: clamp(5rem, min(14vw, 28vh), 16rem);
+  line-height: 1.12;
 }
 
 .stopwatch-panel {

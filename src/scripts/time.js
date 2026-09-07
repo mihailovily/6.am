@@ -62,6 +62,7 @@ let tickTimer = 0;
 let lastClockSecond = -1;
 let lastClockRuleSecond = -1;
 let lastPomodoroSecond = -1;
+let fallbackPresentation = false;
 const resetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
 const lapIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4m0 1c4-2 7 2 12 0v9c-5 2-8-2-12 0"/></svg>';
 
@@ -151,6 +152,57 @@ function renderTabs() {
   /** @type {HTMLElement} */ ($('[data-running="stopwatch"]')).hidden = state.stopwatch.startedAt === null;
   /** @type {HTMLElement} */ ($('[data-running="pomodoro"]')).hidden = state.pomodoro.deadline === null;
 }
+
+function syncFullscreenControls() {
+  const active = Boolean(document.fullscreenElement) || fallbackPresentation;
+  document.documentElement.classList.toggle('time-fullscreen', active);
+  document.querySelectorAll('[data-fullscreen]').forEach((element) => {
+    const button = /** @type {HTMLButtonElement} */ (element);
+    button.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Open in fullscreen');
+    button.title = active ? 'Exit fullscreen' : 'Open fullscreen';
+  });
+}
+
+async function enterFullscreen() {
+  try {
+    await document.documentElement.requestFullscreen();
+  } catch {
+    fallbackPresentation = true;
+    syncFullscreenControls();
+  }
+}
+
+async function exitFullscreen() {
+  fallbackPresentation = false;
+  if (document.fullscreenElement) {
+    try {
+      await document.exitFullscreen();
+    } catch {}
+  }
+  syncFullscreenControls();
+}
+
+document.querySelectorAll('[data-fullscreen]').forEach((element) => {
+  element.addEventListener('click', () => {
+    if (document.fullscreenElement || fallbackPresentation) {
+      void exitFullscreen();
+    } else {
+      void enterFullscreen();
+    }
+  });
+});
+
+document.addEventListener('fullscreenchange', () => {
+  fallbackPresentation = false;
+  syncFullscreenControls();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && fallbackPresentation) {
+    event.preventDefault();
+    void exitFullscreen();
+  }
+});
 
 function renderPhaseButtons() {
   document.querySelectorAll('[data-phase]').forEach((element) => {
