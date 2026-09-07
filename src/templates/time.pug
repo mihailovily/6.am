@@ -57,17 +57,17 @@ html(lang="en", class="dark")
                   span :
                   | 00
                 .session-label#session-label SESSION 01 <span>/ 04</span>
-                .timer-actions
-                  button.icon-button#pomodoro-reset(aria-label="Reset current phase") ↺
-                  button.primary-button#pomodoro-toggle
-                    span Start focus
-                p.completion-notice#pomodoro-notice(role="status")
               .timer-bottom
                 div
                   span#progress-label Focus
                   span#progress-value 25 min · 0%
                 .progress-track
                   .progress-indicator#progress-indicator
+              .timer-actions
+                button.icon-button#pomodoro-reset(aria-label="Reset current phase") ↺
+                button.primary-button#pomodoro-toggle
+                  span Start focus
+              p.completion-notice#pomodoro-notice(role="status")
 
         section#panel-clock.view-panel(data-panel="clock", role="tabpanel", aria-labelledby="tab-clock", tabindex="0", hidden)
           section.alternate-panel

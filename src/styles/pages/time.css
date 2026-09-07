@@ -46,7 +46,7 @@ h1 { margin: 0 0 26px; color: var(--body-text-soft); font-size: 1.25rem; font-we
 .session-label { color: var(--accent-soft); }
 .session-label span { color: var(--body-text-disabled); }
 
-.timer-bottom { width: 100%; max-width: 480px; margin: auto; }
+.timer-bottom { width: 100%; max-width: 480px; margin: 0 auto; }
 .timer-bottom > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--body-text-secondary); font-size: .8125rem; }
 .progress-track { height: 2px; margin-bottom: 32px; background: var(--track); }
 .progress-indicator { width: 0; height: 100%; background: var(--accent-strong); }
