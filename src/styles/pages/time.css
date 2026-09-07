@@ -153,6 +153,39 @@ html.time-fullscreen body { min-height: 100%; background: var(--background); }
   flex-direction: column;
 }
 
+.time-fullscreen .stopwatch-panel { position: relative; }
+.time-fullscreen .stopwatch-panel h1 { margin-top: 0; }
+.time-fullscreen .stopwatch-digits {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  margin: 0;
+  transform: translateY(-50%);
+}
+.time-fullscreen #stopwatch-actions {
+  position: absolute;
+  right: 0;
+  bottom: clamp(24px, 5vw, 80px);
+  left: 0;
+  margin: 0;
+}
+.time-fullscreen .stopwatch-panel .empty-note {
+  position: absolute;
+  right: 0;
+  bottom: calc(clamp(24px, 5vw, 80px) + 74px);
+  left: 0;
+  margin: 0;
+}
+.time-fullscreen .stopwatch-panel .laps:not([hidden]) {
+  position: absolute;
+  top: clamp(120px, 16vh, 190px);
+  right: clamp(24px, 5vw, 80px);
+  left: clamp(24px, 5vw, 80px);
+  max-height: min(20vh, 220px);
+  margin: 0 auto;
+}
+
 .stopwatch-panel .laps {
   width: 100%;
   min-height: 0;
