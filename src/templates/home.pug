@@ -1,7 +1,7 @@
-- var title = '6.am — Пространство для фокуса'
-- var description = '6.am — спокойная open-source экосистема для продуктивности.'
+- var title = '6.am — A space for focus'
+- var description = '6.am — a calm, open-source productivity ecosystem.'
 doctype html
-html(lang="ru", class="dark")
+html(lang="en", class="dark")
   include _head.pug
   body
     .site-shell.home-shell
@@ -10,20 +10,19 @@ html(lang="ru", class="dark")
         p.eyebrow 6.AM / INDEX
         h1.home-title Less noise.<br><span>More focus.</span>
         p.home-intro A set of tools for productive work.
-        nav.service-list(aria-label="Сервисы 6.am")
+        nav.service-list(aria-label="6.am services")
           a.service-card.service-card-active(href=base + "time.html")
             span.service-index 01
             span.service-copy
-              strong Время
-              small Часы · секундомер · помодоро
+              strong Time
+              small Clock · stopwatch · Pomodoro
             span.service-arrow(aria-hidden="true") ↗
-          each item, index in [{name: 'Задачи', description: 'Следующий модуль экосистемы'}, {name: 'Ритуалы', description: 'Место для повторяемого'}]
-            a.service-card.service-card-soon(href="#", aria-disabled="true", data-coming-soon)
+          each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}, {name: 'Rituals', description: 'A place for repeatable practices'}]
+            article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
               span.service-index= `0${index + 2}`
               span.service-copy
                 strong= item.name
                 small= item.description
-              span.service-status скоро
-        p.home-hint#home-hint(role="status") Открытый исходный код · сделано для спокойной работы
+              span.service-status Coming soon
+        p.home-hint#home-hint Open source · made for calm work
       include _footer.pug
-    script(type="module", src="/src/scripts/home.js")

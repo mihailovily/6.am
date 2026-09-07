@@ -27,6 +27,7 @@ npm run dev
 ```bash
 npm run build
 npm run check
+npm run lint:css
 npm test
 npm run smoke
 npm run preview
@@ -67,12 +68,10 @@ src/styles/
   base.css              базовые правила и accessibility
   components.css        общие UI-компоненты и иконки
   pages/time.css        стили, специфичные для time.html
-  legacy.css            текущие правила визуальной системы
 src/scripts/
-  home.js               интерактивность главной
   time.js               часы, секундомер и помодоро
   time-domain.js        чистая логика состояния и восстановления
 pages.config.js         единый реестр страниц, маршрутов и выходных имён
 ```
 
-Чтобы добавить новый сервис, создай Pug-шаблон и entry-страницу в `src/pages/`, затем один раз зарегистрируй source, output и route в `pages.config.js`. Этот реестр используется dev-сервером, production build и smoke-test. Общие визуальные правила держи в `src/styles/`, а логику страницы — в `src/scripts/`.
+Чтобы добавить новый сервис, создай Pug-шаблон и entry-страницу в `src/pages/`, затем один раз зарегистрируй source, output и route в `pages.config.js`. Этот реестр используется dev-сервером, production build и smoke-test. Общие визуальные правила держи в `src/styles/`, а логику страницы — в `src/scripts/`. `npm run lint:css` запрещает raw colors вне `tokens.css` и дублирующиеся селекторы.

@@ -9,10 +9,12 @@
     "preview": "vite preview --configLoader runner",
     "smoke": "node scripts/smoke-dist.mjs",
     "test": "node --test",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "lint:css": "stylelint \"src/styles/**/*.css\""
   },
   "devDependencies": {
     "pug": "^3.0.4",
+    "stylelint": "^17.15.0",
     "typescript": "^5.6.3",
     "vite": "^6.0.0"
   }

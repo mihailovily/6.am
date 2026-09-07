@@ -1,29 +1,54 @@
 .home-main {
-  padding: clamp(40px, 7vh, 85px) 0 80px;
+  max-width: 760px;
+  padding: clamp(80px, 14vh, 170px) 0 80px;
 }
 
-footer {
-  justify-content: flex-start;
-  gap: 0;
+.home-title {
+  margin: 24px 0 18px;
+  color: var(--body-text);
+  font-size: clamp(3.4rem, 8vw, 7rem);
+  line-height: 1.02;
+  letter-spacing: -.08em;
 }
 
-footer > span::after {
-  content: ' · ';
-  color: #69727b;
-}
+.home-title span { color: var(--body-text-disabled); }
+.home-intro { max-width: 470px; margin: 0 0 52px; font-size: 1.05rem; }
 
-footer a {
-  color: var(--muted-foreground);
-  text-decoration: none;
-  transition: color .15s ease;
-}
+.service-list { border-top: 1px solid var(--border); }
 
-footer a:hover {
+.service-card {
+  display: flex;
+  align-items: center;
+  min-height: 96px;
+  gap: 22px;
+  padding: 20px 4px;
+  border-bottom: 1px solid var(--border);
   color: var(--foreground);
+  text-decoration: none;
+  transition: padding .18s ease, background .18s ease;
 }
+
+.service-card-active:hover { padding-left: 14px; background: var(--surface-hover); }
+.service-index { width: 34px; color: var(--body-text-disabled); font: 12px Consolas, monospace; }
+.service-copy { display: flex; flex: 1; flex-direction: column; gap: 3px; }
+.service-copy strong { font-size: 1.1rem; font-weight: 400; }
+.service-copy small { color: var(--body-text-disabled); font-size: .875rem; }
+.service-arrow { color: var(--accent); font-size: 1.4rem; }
+
+.service-status {
+  color: var(--body-text-secondary);
+  font: 12px Consolas, monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.service-card-soon { cursor: default; }
+.home-hint { margin-top: 28px; font-size: .75rem; }
 
 @media (max-width: 760px) {
   .home-main {
-    padding: 40px 0;
+    padding: 80px 0 40px;
   }
+
+  .home-title { font-size: clamp(3.2rem, 15vw, 5rem); }
 }

@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "color-no-hex": true,
+    "no-duplicate-selectors": true
+  },
+  "overrides": [
+    {
+      "files": ["src/styles/tokens.css"],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

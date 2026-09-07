@@ -27,7 +27,7 @@ function $(selector) {
 
 const pad = (/** @type {number} */ number) => String(number).padStart(2, '0');
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-const labels = /** @type {Record<Phase, string>} */ ({ focus: 'Фокус', short: 'Короткий отдых', long: 'Длинный отдых' });
+const labels = /** @type {Record<Phase, string>} */ ({ focus: 'Focus', short: 'Short break', long: 'Long break' });
 const codes = /** @type {Record<View, string>} */ ({ clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03', settings: 'SET / 04' });
 const preferencesKey = '6am-preferences';
 const runtimeKey = '6am-runtime';
@@ -139,7 +139,7 @@ function updateDocumentTitle() {
     const remaining = countdown(state.pomodoro.remaining);
     document.title = `${remaining} · ${labels[state.pomodoro.phase]} — 6.am`;
   } else {
-    document.title = '6.am — Время';
+    document.title = '6.am — Time';
   }
 }
 
@@ -186,17 +186,17 @@ function renderPomodoro() {
   const done = timer.completed % settings.cycles;
   const visible = timer.phase === 'long' && done === 0 && timer.completed > 0 ? settings.cycles : done;
   const session = timer.phase === 'focus' ? done + 1 : done || settings.cycles;
-  setStatus(/** @type {HTMLElement} */ ($('#pomodoro-status')), running ? 'Идёт отсчёт' : timer.remaining < total ? 'На паузе' : 'Готов к старту', running);
-  $('#pomodoro-heading').textContent = timer.phase === 'focus' ? 'Время сосредоточиться.' : 'Пауза тоже часть работы.';
+  setStatus(/** @type {HTMLElement} */ ($('#pomodoro-status')), running ? 'Counting down' : timer.remaining < total ? 'Paused' : 'Ready to start', running);
+  $('#pomodoro-heading').textContent = timer.phase === 'focus' ? 'Time to focus.' : 'A break is part of the work.';
   $('#pomodoro-digits').innerHTML = `${remaining.split(':')[0]}<span>:</span>${remaining.split(':')[1]}`;
-  $('#pomodoro-digits').setAttribute('aria-label', `Осталось ${remaining}`);
-  $('#session-label').innerHTML = `СЕССИЯ ${pad(session)} <span>/ ${pad(settings.cycles)}</span>`;
-  $('#pomodoro-toggle').innerHTML = `<span>${running ? 'Пауза' : timer.remaining < total ? 'Продолжить' : timer.phase === 'focus' ? 'Начать фокус' : 'Начать отдых'}</span>`;
+  $('#pomodoro-digits').setAttribute('aria-label', `${remaining} remaining`);
+  $('#session-label').innerHTML = `SESSION ${pad(session)} <span>/ ${pad(settings.cycles)}</span>`;
+  $('#pomodoro-toggle').innerHTML = `<span>${running ? 'Pause' : timer.remaining < total ? 'Resume' : timer.phase === 'focus' ? 'Start focus' : 'Start break'}</span>`;
   $('#pomodoro-notice').textContent = timer.notice;
   $('#progress-label').textContent = labels[timer.phase];
-  $('#progress-value').textContent = `${settings[timer.phase]} мин · ${Math.floor(progress)}%`;
+  $('#progress-value').textContent = `${settings[timer.phase]} min · ${Math.floor(progress)}%`;
   /** @type {HTMLElement} */ ($('#progress-indicator')).style.width = `${progress}%`;
-  $('#session-marks').setAttribute('aria-label', `Завершено в цикле: ${visible} из ${settings.cycles}`);
+  $('#session-marks').setAttribute('aria-label', `Completed in cycle: ${visible} of ${settings.cycles}`);
   renderSessionMarks(visible);
   renderPhaseButtons();
   updateDocumentTitle();
@@ -223,11 +223,11 @@ function initializeClockRule() {
 function renderClock() {
   const date = new Date(state.now);
   const parts = zonedParts(date);
-  const time = new Intl.DateTimeFormat('ru-RU', { timeZone: settings.timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !settings.clockFormat24 }).format(date);
+  const time = new Intl.DateTimeFormat('en-GB', { timeZone: settings.timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !settings.clockFormat24 }).format(date);
   $('#clock-heading').textContent = greeting(Number(parts.hour));
   $('#clock-digits').textContent = time;
   $('#clock-digits').setAttribute('aria-label', time);
-  $('#date-label').textContent = new Intl.DateTimeFormat('ru-RU', { timeZone: settings.timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  $('#date-label').textContent = new Intl.DateTimeFormat('en-GB', { timeZone: settings.timeZone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   $('#time-zone').textContent = settings.timeZoneLabel || settings.timeZone.replaceAll('_', ' ');
   const second = Number(parts.second);
   const marks = [...$('#clock-rule').children];
@@ -264,9 +264,9 @@ function renderLaps() {
 function renderStopwatch() {
   const time = elapsed(state.stopwatch);
   const running = state.stopwatch.startedAt !== null;
-  setStatus(/** @type {HTMLElement} */ ($('#stopwatch-status')), running ? 'Идёт отсчёт' : time ? 'На паузе' : 'Готов к старту', running);
+  setStatus(/** @type {HTMLElement} */ ($('#stopwatch-status')), running ? 'Counting' : time ? 'Paused' : 'Ready to start', running);
   renderStopwatchTime();
-  $('#stopwatch-toggle').innerHTML = `<span>${running ? 'Пауза' : time ? 'Продолжить' : 'Начать'}</span>`;
+  $('#stopwatch-toggle').innerHTML = `<span>${running ? 'Pause' : time ? 'Resume' : 'Start'}</span>`;
   /** @type {HTMLButtonElement} */ ($('#stopwatch-reset')).disabled = time === 0;
   /** @type {HTMLButtonElement} */ ($('#stopwatch-lap')).disabled = !running || state.stopwatch.laps.length >= 100;
   renderLaps();
@@ -310,7 +310,7 @@ function playCompletionSound() {
       oscillator.stop(start + .22);
     });
   } catch {
-    state.pomodoro.notice = 'Звук недоступен. Завершение этапа показано на экране.';
+    state.pomodoro.notice = 'Sound is unavailable. The completed phase is shown on screen.';
   }
 }
 
@@ -425,7 +425,7 @@ document.querySelectorAll('[data-phase]').forEach((element) => {
   button.addEventListener('click', () => {
     const phase = /** @type {Phase} */ (button.dataset.phase);
     if (phase === state.pomodoro.phase) return;
-    if (state.pomodoro.deadline !== null && !window.confirm('Сменить этап и сбросить текущий прогресс?')) return;
+    if (state.pomodoro.deadline !== null && !window.confirm('Change phase and reset current progress?')) return;
     state.pomodoro = { phase, remaining: duration(settings, phase), deadline: null, completed: state.pomodoro.completed, notice: '' };
     persistRuntime();
     renderTabs();
@@ -445,7 +445,7 @@ $('#pomodoro-toggle').addEventListener('click', async () => {
     const audioReady = await enableAudio();
     button.disabled = false;
     state.pomodoro.deadline = Date.now() + state.pomodoro.remaining;
-    state.pomodoro.notice = audioReady ? '' : 'Звук недоступен. Таймер продолжит работу без сигнала.';
+    state.pomodoro.notice = audioReady ? '' : 'Sound is unavailable. The timer will continue without an alert.';
   }
   persistRuntime();
   renderTabs();
@@ -505,7 +505,7 @@ $('#clock-settings-form').addEventListener('submit', (event) => {
   $('#clock-settings-error').textContent = '';
   $('#clock-settings-feedback').textContent = '';
   if (!isValidTimeZone(timeZone)) {
-    $('#clock-settings-error').textContent = 'Введи корректный часовой пояс IANA, например Europe/Moscow.';
+    $('#clock-settings-error').textContent = 'Enter a valid IANA time zone, such as Europe/Moscow.';
     return;
   }
   settings = {
@@ -515,9 +515,9 @@ $('#clock-settings-form').addEventListener('submit', (event) => {
     timeZoneLabel: /** @type {HTMLInputElement} */ ($('#time-zone-label')).value.trim().slice(0, 80)
   };
   if (saveSettings()) {
-    $('#clock-settings-feedback').textContent = 'Настройки часов сохранены на этом устройстве.';
+    $('#clock-settings-feedback').textContent = 'Clock settings were saved on this device.';
   } else {
-    $('#clock-settings-error').textContent = 'Не удалось сохранить настройки. Они действуют только до закрытия страницы.';
+    $('#clock-settings-error').textContent = 'Could not save settings. They will only apply until this page is closed.';
   }
   state.now = Date.now();
   renderClock();
@@ -537,16 +537,16 @@ $('#settings-form').addEventListener('submit', (event) => {
   $('#settings-error').textContent = '';
   $('#settings-feedback').textContent = '';
   if (!validPomodoroSettings(next)) {
-    $('#settings-error').textContent = 'Укажи целые минуты от 1 до 180 и число сессий от 1 до 12.';
+    $('#settings-error').textContent = 'Use whole minutes from 1 to 180 and 1 to 12 sessions.';
     return;
   }
   settings = /** @type {Settings} */ (next);
   state.pomodoro = createRuntime(settings).pomodoro;
   persistRuntime();
   if (saveSettings()) {
-    $('#settings-feedback').textContent = 'Настройки сохранены на этом устройстве.';
+    $('#settings-feedback').textContent = 'Settings were saved on this device.';
   } else {
-    $('#settings-error').textContent = 'Не удалось сохранить настройки. Они действуют только до закрытия страницы.';
+    $('#settings-error').textContent = 'Could not save settings. They will only apply until this page is closed.';
   }
   renderTabs();
   if (state.view === 'pomodoro') renderPomodoro();

@@ -1,9 +1,47 @@
-* { box-sizing: border-box; border-color: var(--border); }
-html { overflow-x: clip; background: var(--background); scroll-behavior: smooth; }
-body { margin: 0; background: var(--background); color: var(--foreground); font: 16px/1.5 Arial, sans-serif; }
-button, input { font: inherit; }
+* {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
+
+html {
+  overflow-x: clip;
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font: 16px/1.5 Arial, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
 button { cursor: pointer; }
-button:disabled { opacity: .4; cursor: not-allowed; }
-button, a, input { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+button:disabled { cursor: not-allowed; opacity: .4; }
+
+button,
+a,
+input { -webkit-tap-highlight-color: transparent; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 [hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

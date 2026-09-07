@@ -128,8 +128,8 @@ export function advancePomodoro(current, settings, now) {
       : 'focus';
     timer.remaining = duration(settings, timer.phase);
     timer.notice = completedFocus
-      ? 'Сессия завершена. Время отдохнуть.'
-      : 'Отдых завершён. Можно возвращаться к работе.';
+      ? 'Session complete. Time for a break.'
+      : 'Break complete. Ready to get back to work.';
     transitions += 1;
 
     if (!settings.autoStart) {
