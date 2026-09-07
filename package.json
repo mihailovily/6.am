@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "node build.mjs",
-    "preview": "vite preview",
+    "preview": "vite preview --configLoader runner",
+    "smoke": "node scripts/smoke-dist.mjs",
     "check": "tsc --noEmit"
   },
   "devDependencies": {

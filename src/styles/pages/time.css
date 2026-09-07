@@ -1,6 +1,15 @@
 /* Page-specific additions live here; shared visual rules remain in legacy.css while the stylesheet is migrated safely. */
 .view-panel[hidden] { display: none !important; }
 
+main,
+.navigation,
+.mode-tabs,
+.mode-tab,
+.view-panel,
+.alternate-panel {
+  min-width: 0;
+}
+
 .timer-digits {
   font-family: var(--font-geist-sans), Arial, sans-serif;
   font-variant-numeric: tabular-nums;
@@ -122,6 +131,10 @@
 }
 
 @media (max-width: 760px) {
+  .mode-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .alternate-panel {
     height: 480px;
     min-height: 480px;

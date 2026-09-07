@@ -17,15 +17,18 @@ function pugPages() {
         next();
       });
     },
-    async transformIndexHtml(html, context) {
-      const matches = [...html.matchAll(pugTag)];
-      let result = html;
-      for (const match of matches) {
-        const source = resolve(dirname(context.filename), match[1]);
-        const template = await readFile(source, 'utf8');
-        result = result.replace(match[0], pug.compile(template, { filename: source })());
+    transformIndexHtml: {
+      order: 'pre',
+      async handler(html, context) {
+        const matches = [...html.matchAll(pugTag)];
+        let result = html;
+        for (const match of matches) {
+          const source = resolve(dirname(context.filename), match[1]);
+          const template = await readFile(source, 'utf8');
+          result = result.replace(match[0], pug.compile(template, { filename: source })());
+        }
+        return result;
       }
-      return result;
     }
   };
 }
