@@ -152,13 +152,44 @@ footer a:hover { color: var(--foreground); }
   .header-note { font-size: .75rem; }
   .navigation { margin: 24px 0 20px; }
   .section-code { display: none; }
-  footer { align-items: flex-start; min-height: 100px; padding: 28px 0; }
+  footer { align-items: flex-start; min-height: 88px; padding: 24px 0; }
+
+  .mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .mode-tab {
+    min-width: 0;
+    min-height: 52px;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 12px 14px;
+    border-color: var(--border);
+    background: var(--panel);
+  }
+
+  .mode-tab:hover,
+  .mode-tab[aria-selected="true"] {
+    border-color: var(--accent-muted);
+    background: var(--surface-selected);
+  }
+}
+
+@media (max-width: 600px) {
+  .site-shell { padding: 0 clamp(16px, 5vw, 20px); }
+  .site-header { min-height: 72px; }
+
+  .navigation { display: block; margin: 18px 0 16px; }
+  footer { flex-direction: column; gap: 6px; min-height: 0; padding: 24px 0; }
 }
 
 @media (max-width: 380px) {
   .site-shell { padding: 0 12px; }
   .header-note { display: none; }
-  .mode-tab { flex-direction: column; }
+  .mode-tab { gap: 6px; padding: 12px 9px; font-size: .8125rem; }
   .phase-button { padding: 7px; font-size: .8125rem; }
   .primary-button { min-width: 150px; padding: 12px 18px; }
 }

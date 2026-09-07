@@ -70,7 +70,7 @@ h2 { margin: 0; font-size: 1rem; font-weight: 500; }
 .switch:checked::after { transform: translateX(18px); background: var(--panel-alt); }
 .background-note { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
 
-.hundredths { color: var(--body-text-secondary); font-size: .35em; letter-spacing: -.03em; }
+.hundredths { color: var(--body-text-secondary); margin-left: .12em; font-size: .44em; letter-spacing: -.05em; vertical-align: .12em; }
 .empty-note { margin-top: 28px; color: var(--body-text-secondary); font-size: .875rem; }
 .laps { max-width: 560px; max-height: 360px; margin: 32px auto 24px; overflow: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -215,31 +215,25 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
 .clock-rule i.elapsed { background: var(--accent-soft); }
 
 @media (max-width: 760px) {
-  .mode-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .alternate-panel {
-    min-height: 480px;
-  }
-
   .view-panel > .work-grid,
   .view-panel > .alternate-panel,
   .view-panel > .settings-panel {
-    min-height: 480px;
-  }
-
-  .view-panel > .stopwatch-panel {
     min-height: 0;
   }
 
-  .timer-panel { min-height: 485px; padding: 22px 20px; }
-  .timer-center { padding: 32px 0; }
-  .timer-digits { font-size: clamp(5rem, 19vw, 8rem); }
+  .timer-panel { min-height: 0; padding: 28px 24px 24px; }
+  .timer-center { flex: 0 0 auto; padding: 0; }
+  .timer-center h1 { margin-bottom: 20px; }
+  .phase-choice { margin-bottom: 14px; }
+  .timer-digits { font-size: clamp(4.75rem, 19vw, 7.5rem); line-height: 1.16; }
+  .session-label { display: block; margin-top: 4px; }
+  .timer-actions { margin-top: 24px; }
+  .timer-bottom { max-width: none; margin: 28px 0 0; }
+  .progress-track { margin-bottom: 0; }
   .settings-panel { padding: 24px; border-top: 1px solid var(--border); border-left: 0; }
 
   .settings-view {
-    min-height: 480px;
+    min-height: 0;
   }
 
   .settings-controls {
@@ -252,11 +246,39 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
   }
 
   .clock-digits {
-    margin-top: 55px;
-    font-size: clamp(2.8rem, 11.8vw, 6.25rem);
+    margin: 30px auto 12px;
+    font-size: clamp(3.1rem, 16vw, 5rem);
+    line-height: 1;
   }
 
-  .stopwatch-digits { margin-top: 65px; font-size: clamp(2.2rem, 9.7vw, 5.5rem); }
+  .alternate-panel { min-height: 0; padding: 28px 24px; }
+  .alternate-panel h1 { margin-top: 0; margin-bottom: 0; }
+  .stopwatch-digits { margin: 42px 0 32px; font-size: clamp(2.3rem, 10vw, 4.5rem); line-height: 1; }
+  .empty-note { margin: 28px 0 0; }
+  .clock-rule { margin-top: 36px; }
+}
+
+@media (max-width: 600px) {
+  .timer-panel { padding: 24px 16px 20px; }
+  .timer-center h1 { margin-bottom: 20px; font-size: 1.125rem; }
+  .timer-digits { font-size: clamp(4.5rem, 20vw, 6rem); }
+
+  .phase-choice { gap: 6px; }
+  .phase-button { flex: 1 1 0; min-width: 0; padding: 8px 6px; font-size: .8125rem; }
+  .timer-actions { gap: 12px; }
+  .timer-actions .primary-button { flex: 1 1 auto; min-width: 0; }
+
+  .alternate-panel { padding: 24px 16px; }
+  .clock-digits { margin-top: 28px; font-size: clamp(3rem, 16vw, 4rem); }
+  .stopwatch-digits { margin: 38px 0 30px; font-size: clamp(2.2rem, 10vw, 3.5rem); }
+  .clock-rule { margin-top: 30px; }
+
+  .settings-panel { padding: 22px 16px; }
+  .settings-controls { gap: 28px; margin-top: 20px; }
+  .pomodoro-settings .field-stack { gap: 14px; }
+  .settings-field input,
+  .settings-field select,
+  .number-field input { min-height: 48px; }
 }
 
 @media (max-width: 380px) {

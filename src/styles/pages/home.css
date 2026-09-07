@@ -47,8 +47,24 @@
 
 @media (max-width: 760px) {
   .home-main {
-    padding: 80px 0 40px;
+    padding: 56px 0 40px;
   }
 
   .home-title { font-size: clamp(3.2rem, 15vw, 5rem); }
+}
+
+@media (max-width: 600px) {
+  .home-main { padding: 44px 0 32px; }
+  .home-title { margin: 18px 0 16px; line-height: 1.04; }
+  .home-intro { margin-bottom: 34px; font-size: 1rem; }
+
+  .service-card {
+    min-height: 76px;
+    gap: 14px;
+    padding: 16px 0;
+  }
+
+  .service-index { width: 28px; }
+  .service-copy small { font-size: .8125rem; }
+  .home-hint { margin-top: 22px; }
 }
