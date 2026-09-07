@@ -93,10 +93,10 @@ footer {
   font-size: .75rem;
 }
 
-footer > span::after { content: ' · '; color: var(--body-text-disabled); }
 footer > span:last-child { font-family: Consolas, monospace; letter-spacing: .13em; }
 footer a { color: var(--muted-foreground); text-decoration: none; transition: color .15s ease; }
 footer a:hover { color: var(--foreground); }
+.footer-heart { margin: 0 .25em; color: currentColor; font-family: Arial, sans-serif; font-variant-emoji: text; }
 
 .status {
   display: flex;
