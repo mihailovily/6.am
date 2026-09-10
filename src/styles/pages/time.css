@@ -270,6 +270,13 @@ html.time-fullscreen body {
   margin-bottom: 9px;
 }
 
+.sound-field > label,
+.volume-field > label,
+.custom-sound-field > label {
+  display: block;
+  margin-bottom: 9px;
+}
+
 .settings-field input,
 .settings-field select {
   width: 100%;
@@ -292,6 +299,25 @@ html.time-fullscreen body {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+.sound-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  transition: opacity .15s ease;
+}
+
+.sound-settings.is-disabled { opacity: .45; }
+.sound-choice { display: flex; gap: 8px; }
+.sound-choice select { min-width: 0; flex: 1; }
+.sound-preview { flex: 0 0 45px; width: 45px; min-width: 45px; min-height: 45px; }
+.volume-field,
+.custom-sound-field { grid-column: 1 / -1; }
+.volume-field > label { display: flex; justify-content: space-between; }
+.volume-field output { color: var(--body-text-subtle); font: .8125rem Consolas, monospace; }
+.volume-field input { min-height: 28px; padding: 0; accent-color: var(--accent-strong); }
+.custom-sound-field input { padding: 8px; font: .875rem Arial, sans-serif; }
+.custom-sound-field small { display: block; margin-top: 7px; color: var(--body-text-subtle); line-height: 1.45; }
 
 .pomodoro-settings .field-stack {
   display: grid;
@@ -345,6 +371,10 @@ html.time-fullscreen body {
   .pomodoro-settings .field-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .sound-settings { grid-template-columns: 1fr; }
+  .volume-field,
+  .custom-sound-field { grid-column: auto; }
 
   .clock-digits {
     margin: 24px auto 12px;

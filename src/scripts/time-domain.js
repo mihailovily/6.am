@@ -3,6 +3,7 @@
 export const RUNTIME_VERSION = 1;
 export const RUNTIME_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 export const phases = ['focus', 'short', 'long'];
+export const soundIds = ['chime', 'bell', 'digital', 'custom'];
 
 /** @typedef {'focus' | 'short' | 'long'} Phase */
 /**
@@ -12,6 +13,10 @@ export const phases = ['focus', 'short', 'long'];
  * @property {number} long
  * @property {number} cycles
  * @property {boolean} sound
+ * @property {'chime' | 'bell' | 'digital' | 'custom'} focusSound
+ * @property {'chime' | 'bell' | 'digital' | 'custom'} breakSound
+ * @property {number} soundVolume
+ * @property {string} customSoundName
  * @property {boolean} autoStart
  * @property {boolean} clockFormat24
  * @property {string} timeZone
@@ -41,6 +46,10 @@ export function createDefaults(browserTimeZone = 'UTC') {
     long: 15,
     cycles: 4,
     sound: true,
+    focusSound: 'chime',
+    breakSound: 'bell',
+    soundVolume: 65,
+    customSoundName: '',
     autoStart: false,
     clockFormat24: true,
     timeZone: browserTimeZone,
@@ -73,6 +82,11 @@ export function validPomodoroSettings(saved) {
     && typeof saved.autoStart === 'boolean';
 }
 
+/** @param {unknown} value @returns {value is Settings['focusSound']} */
+export function isValidSoundId(value) {
+  return typeof value === 'string' && soundIds.includes(value);
+}
+
 /** @param {unknown} saved @param {string} browserTimeZone @returns {Settings} */
 export function normalizeSettings(saved, browserTimeZone) {
   const defaults = createDefaults(browserTimeZone);
@@ -84,6 +98,12 @@ export function normalizeSettings(saved, browserTimeZone) {
     long: Number(saved.long),
     cycles: Number(saved.cycles),
     sound: Boolean(saved.sound),
+    focusSound: isValidSoundId(saved.focusSound) ? saved.focusSound : defaults.focusSound,
+    breakSound: isValidSoundId(saved.breakSound) ? saved.breakSound : defaults.breakSound,
+    soundVolume: Number.isInteger(saved.soundVolume) && Number(saved.soundVolume) >= 0 && Number(saved.soundVolume) <= 100
+      ? Number(saved.soundVolume)
+      : defaults.soundVolume,
+    customSoundName: typeof saved.customSoundName === 'string' ? saved.customSoundName.trim().slice(0, 120) : '',
     autoStart: Boolean(saved.autoStart),
     clockFormat24: typeof saved.clockFormat24 === 'boolean' ? saved.clockFormat24 : defaults.clockFormat24,
     timeZone: isValidTimeZone(saved.timeZone) ? String(saved.timeZone) : browserTimeZone,

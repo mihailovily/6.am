@@ -141,6 +141,31 @@ html(lang="en", class="dark")
                 .toggle-row
                   label(for="sound-input") Sound alert
                   input.switch#sound-input(type="checkbox")
+                .sound-settings#sound-settings
+                  .settings-field.sound-field
+                    label(for="focus-sound-input") After focus
+                    .sound-choice
+                      select#focus-sound-input(name="focus-sound")
+                        option(value="chime") Soft chime
+                        option(value="bell") Glass bell
+                        option(value="digital") Digital pulse
+                      button.icon-button.sound-preview(type="button", data-preview-sound="focus", aria-label="Preview focus sound") ▶
+                  .settings-field.sound-field
+                    label(for="break-sound-input") After break
+                    .sound-choice
+                      select#break-sound-input(name="break-sound")
+                        option(value="chime") Soft chime
+                        option(value="bell") Glass bell
+                        option(value="digital") Digital pulse
+                      button.icon-button.sound-preview(type="button", data-preview-sound="break", aria-label="Preview break sound") ▶
+                  .settings-field.volume-field
+                    label(for="sound-volume-input") Volume
+                      output#sound-volume-value(for="sound-volume-input") 65%
+                    input#sound-volume-input(type="range", name="sound-volume", min="0", max="100", step="5", value="65")
+                  .settings-field.custom-sound-field
+                    label(for="custom-sound-input") Custom sound
+                    input#custom-sound-input(type="file", accept="audio/*")
+                    small#custom-sound-name Choose an audio file up to 5 MB. It stays on this device.
                 .toggle-row
                   label(for="auto-start-input") Auto-start phases
                   input.switch#auto-start-input(type="checkbox")

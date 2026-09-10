@@ -6,6 +6,7 @@ import {
   createDefaults,
   createRuntime,
   elapsed,
+  isValidSoundId,
   normalizeRuntime,
   normalizeSettings,
   runtimeSnapshot,
@@ -70,7 +71,30 @@ test('migrates valid older settings and rejects invalid values', () => {
   const migrated = normalizeSettings({ focus: 30, short: 7, long: 20, cycles: 3, sound: false, autoStart: true }, 'UTC');
   assert.equal(migrated.focus, 30);
   assert.equal(migrated.clockFormat24, true);
+  assert.equal(migrated.focusSound, 'chime');
+  assert.equal(migrated.breakSound, 'bell');
+  assert.equal(migrated.soundVolume, 65);
   assert.equal(normalizeSettings({ focus: 0 }, 'UTC').focus, 25);
+});
+
+test('normalizes sound choices and volume', () => {
+  const customized = normalizeSettings({
+    ...settings,
+    focusSound: 'digital',
+    breakSound: 'custom',
+    soundVolume: 35,
+    customSoundName: ' gentle bell.mp3 '
+  }, 'UTC');
+  assert.equal(customized.focusSound, 'digital');
+  assert.equal(customized.breakSound, 'custom');
+  assert.equal(customized.soundVolume, 35);
+  assert.equal(customized.customSoundName, 'gentle bell.mp3');
+  assert.equal(isValidSoundId('obsolete-tone'), false);
+
+  const invalid = normalizeSettings({ ...settings, focusSound: 'noise', breakSound: null, soundVolume: 101 }, 'UTC');
+  assert.equal(invalid.focusSound, 'chime');
+  assert.equal(invalid.breakSound, 'bell');
+  assert.equal(invalid.soundVolume, 65);
 });
 
 test('reports storage write failures', () => {

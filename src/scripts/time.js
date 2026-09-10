@@ -6,6 +6,7 @@ import {
   createRuntime,
   duration,
   elapsed,
+  isValidSoundId,
   isValidTimeZone,
   normalizeRuntime,
   normalizeSettings,
@@ -55,8 +56,10 @@ const state = {
   stopwatch: restored.runtime.stopwatch
 };
 
-/** @type {AudioContext | null} */
-let audio = null;
+/** @type {HTMLAudioElement | null} */
+let alertPlayer = null;
+let customSoundUrl = '';
+let customSoundName = settings.customSoundName;
 let stopwatchFrame = 0;
 let tickTimer = 0;
 let lastClockSecond = -1;
@@ -76,6 +79,80 @@ function persistRuntime() {
 
 function saveSettings() {
   return saveJson(localStorage, preferencesKey, settings);
+}
+
+function openSoundDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('IndexedDB is unavailable'));
+      return;
+    }
+    const request = indexedDB.open('6am-sounds', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('audio');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** @param {File} file */
+async function storeCustomSound(file) {
+  const database = /** @type {IDBDatabase} */ (await openSoundDatabase());
+  await new Promise((resolve, reject) => {
+    const transaction = database.transaction('audio', 'readwrite');
+    transaction.objectStore('audio').put({ blob: file, name: file.name }, 'custom');
+    transaction.oncomplete = () => resolve(undefined);
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
+  });
+  database.close();
+}
+
+async function readCustomSound() {
+  const database = /** @type {IDBDatabase} */ (await openSoundDatabase());
+  const record = await new Promise((resolve, reject) => {
+    const request = database.transaction('audio').objectStore('audio').get('custom');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  database.close();
+  return /** @type {{ blob?: Blob, name?: string } | undefined} */ (record);
+}
+
+/** @param {Blob} blob @param {string} name */
+function useCustomSound(blob, name) {
+  if (customSoundUrl) URL.revokeObjectURL(customSoundUrl);
+  customSoundUrl = URL.createObjectURL(blob);
+  customSoundName = name.slice(0, 120);
+  document.querySelectorAll('option[data-custom-sound]').forEach((option) => option.remove());
+  ['focus-sound-input', 'break-sound-input'].forEach((id) => {
+    const option = document.createElement('option');
+    option.value = 'custom';
+    option.dataset.customSound = '';
+    option.textContent = `Custom — ${customSoundName}`;
+    $(`#${id}`).append(option);
+  });
+  $('#custom-sound-name').textContent = `${customSoundName} · stored on this device`;
+}
+
+function syncSoundControls() {
+  /** @type {HTMLInputElement} */ ($('#sound-input')).checked = settings.sound;
+  /** @type {HTMLSelectElement} */ ($('#focus-sound-input')).value = settings.focusSound === 'custom' && !customSoundUrl ? 'chime' : settings.focusSound;
+  /** @type {HTMLSelectElement} */ ($('#break-sound-input')).value = settings.breakSound === 'custom' && !customSoundUrl ? 'bell' : settings.breakSound;
+  /** @type {HTMLInputElement} */ ($('#sound-volume-input')).value = String(settings.soundVolume);
+  $('#sound-volume-value').textContent = `${settings.soundVolume}%`;
+  const controls = [...$('#sound-settings').querySelectorAll('input, select, button')];
+  controls.forEach((element) => { /** @type {HTMLInputElement | HTMLSelectElement | HTMLButtonElement} */ (element).disabled = !settings.sound; });
+  $('#sound-settings').classList.toggle('is-disabled', !settings.sound);
+}
+
+async function restoreCustomSound() {
+  try {
+    const record = await readCustomSound();
+    if (record?.blob instanceof Blob && record.name) {
+      useCustomSound(record.blob, record.name);
+      syncSoundControls();
+    }
+  } catch {}
 }
 
 /** @returns {string[]} */
@@ -329,40 +406,71 @@ function startStopwatchFrame() {
   }
 }
 
-function playCompletionSound() {
-  if (!settings.sound || !audio) return;
-  const context = audio;
+const soundFiles = {
+  chime: 'sounds/soft-chime.wav',
+  bell: 'sounds/glass-bell.wav',
+  digital: 'sounds/digital-pulse.wav'
+};
+
+/** @param {Settings['focusSound']} soundId */
+function soundUrl(soundId) {
+  if (soundId === 'custom') return customSoundUrl;
+  const baseUrl = new URL(import.meta.env.BASE_URL, location.origin);
+  return new URL(soundFiles[soundId], baseUrl).href;
+}
+
+function getAlertPlayer() {
+  alertPlayer ||= new Audio();
+  alertPlayer.preload = 'auto';
+  return alertPlayer;
+}
+
+/** @param {Settings['focusSound']} soundId */
+async function playAlertSound(soundId) {
+  if (!settings.sound) return true;
+  const source = soundUrl(soundId);
+  if (!source) return false;
   try {
-    [0, .25, .5].forEach((offset) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.frequency.value = 660;
-      const start = context.currentTime + offset;
-      gain.gain.setValueAtTime(.001, start);
-      gain.gain.exponentialRampToValueAtTime(.13, start + .015);
-      gain.gain.exponentialRampToValueAtTime(.001, start + .2);
-      oscillator.start(start);
-      oscillator.stop(start + .22);
-    });
+    const player = getAlertPlayer();
+    player.pause();
+    player.src = source;
+    player.currentTime = 0;
+    player.volume = settings.soundVolume / 100;
+    await player.play();
+    return true;
   } catch {
-    state.pomodoro.notice = 'Sound is unavailable. The completed phase is shown on screen.';
+    return false;
   }
 }
 
-async function enableAudio() {
-  if (!settings.sound) return true;
+function primeAlertSound() {
+  if (!settings.sound) return;
+  const soundId = state.pomodoro.phase === 'focus' ? settings.focusSound : settings.breakSound;
+  const source = soundUrl(soundId);
+  if (!source) return;
   try {
-    const AudioContextConstructor = window.AudioContext;
-    if (!AudioContextConstructor) return false;
-    audio ||= new AudioContextConstructor();
-    if (audio.state === 'suspended') await audio.resume();
-    return audio.state !== 'closed';
-  } catch {
-    audio = null;
-    return false;
-  }
+    const player = getAlertPlayer();
+    player.src = source;
+    player.volume = 0;
+    const attempt = player.play();
+    void attempt.then(() => {
+      player.pause();
+      player.currentTime = 0;
+      player.volume = settings.soundVolume / 100;
+    }).catch(() => {});
+  } catch {}
+}
+
+function playCompletionSound() {
+  const soundId = state.pomodoro.phase === 'focus' ? settings.breakSound : settings.focusSound;
+  void playAlertSound(soundId).then((played) => {
+    if (played) return;
+    state.pomodoro.notice = soundId === 'custom' && !customSoundUrl
+      ? 'The custom sound is missing. Choose it again in Settings.'
+      : 'Sound playback was blocked. The completed phase is shown on screen.';
+    persistRuntime();
+    if (state.view === 'pomodoro') renderPomodoro();
+  });
 }
 
 /** @param {number} now */
@@ -471,18 +579,21 @@ document.querySelectorAll('[data-phase]').forEach((element) => {
   });
 });
 
-$('#pomodoro-toggle').addEventListener('click', async () => {
-  const button = /** @type {HTMLButtonElement} */ ($('#pomodoro-toggle'));
+$('#pomodoro-toggle').addEventListener('click', () => {
   const now = Date.now();
   if (state.pomodoro.deadline !== null) {
     state.pomodoro.remaining = Math.max(0, state.pomodoro.deadline - now);
     state.pomodoro.deadline = null;
   } else {
-    button.disabled = true;
-    const audioReady = await enableAudio();
-    button.disabled = false;
-    state.pomodoro.deadline = Date.now() + state.pomodoro.remaining;
-    state.pomodoro.notice = audioReady ? '' : 'Sound is unavailable. The timer will continue without an alert.';
+    const deadline = now + state.pomodoro.remaining;
+    state.pomodoro.deadline = deadline;
+    state.pomodoro.notice = '';
+    persistRuntime();
+    renderTabs();
+    renderPomodoro();
+    scheduleTick();
+    primeAlertSound();
+    return;
   }
   persistRuntime();
   renderTabs();
@@ -560,6 +671,52 @@ $('#clock-settings-form').addEventListener('submit', (event) => {
   renderClock();
 });
 
+$('#sound-input').addEventListener('change', () => {
+  settings = { ...settings, sound: /** @type {HTMLInputElement} */ ($('#sound-input')).checked };
+  syncSoundControls();
+});
+
+$('#sound-volume-input').addEventListener('input', () => {
+  const soundVolume = Number(/** @type {HTMLInputElement} */ ($('#sound-volume-input')).value);
+  settings = { ...settings, soundVolume };
+  $('#sound-volume-value').textContent = `${soundVolume}%`;
+  if (alertPlayer) alertPlayer.volume = soundVolume / 100;
+});
+
+document.querySelectorAll('[data-preview-sound]').forEach((element) => {
+  element.addEventListener('click', () => {
+    const kind = /** @type {HTMLButtonElement} */ (element).dataset.previewSound;
+    const select = /** @type {HTMLSelectElement} */ ($(kind === 'break' ? '#break-sound-input' : '#focus-sound-input'));
+    const soundId = select.value;
+    if (!isValidSoundId(soundId)) return;
+    void playAlertSound(soundId).then((played) => {
+      $('#settings-error').textContent = played ? '' : 'Could not play this sound. Choose another file or check browser permissions.';
+    });
+  });
+});
+
+$('#custom-sound-input').addEventListener('change', () => {
+  const input = /** @type {HTMLInputElement} */ ($('#custom-sound-input'));
+  const file = input.files?.[0];
+  if (!file) return;
+  $('#settings-error').textContent = '';
+  $('#settings-feedback').textContent = '';
+  const looksLikeAudio = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|webm)$/i.test(file.name);
+  if (!looksLikeAudio || file.size > 5 * 1024 * 1024) {
+    input.value = '';
+    $('#settings-error').textContent = 'Choose an audio file no larger than 5 MB.';
+    return;
+  }
+  useCustomSound(file, file.name);
+  /** @type {HTMLSelectElement} */ ($('#focus-sound-input')).value = 'custom';
+  settings = { ...settings, customSoundName: file.name };
+  void storeCustomSound(file).then(() => {
+    $('#settings-feedback').textContent = 'Custom sound stored on this device. Apply settings to use it.';
+  }).catch(() => {
+    $('#settings-feedback').textContent = 'Custom sound is ready for this tab. This browser could not store it permanently.';
+  });
+});
+
 $('#settings-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const next = {
@@ -569,12 +726,17 @@ $('#settings-form').addEventListener('submit', (event) => {
     long: Number(/** @type {HTMLInputElement} */ ($('#long-input')).value),
     cycles: Number(/** @type {HTMLInputElement} */ ($('#cycles-input')).value),
     sound: /** @type {HTMLInputElement} */ ($('#sound-input')).checked,
+    focusSound: /** @type {HTMLSelectElement} */ ($('#focus-sound-input')).value,
+    breakSound: /** @type {HTMLSelectElement} */ ($('#break-sound-input')).value,
+    soundVolume: Number(/** @type {HTMLInputElement} */ ($('#sound-volume-input')).value),
+    customSoundName,
     autoStart: /** @type {HTMLInputElement} */ ($('#auto-start-input')).checked
   };
   $('#settings-error').textContent = '';
   $('#settings-feedback').textContent = '';
-  if (!validPomodoroSettings(next)) {
-    $('#settings-error').textContent = 'Use whole minutes from 1 to 180 and 1 to 12 sessions.';
+  if (!validPomodoroSettings(next) || !isValidSoundId(next.focusSound) || !isValidSoundId(next.breakSound)
+    || !Number.isInteger(next.soundVolume) || next.soundVolume < 0 || next.soundVolume > 100) {
+    $('#settings-error').textContent = 'Use whole minutes from 1 to 180, 1 to 12 sessions, and valid sound options.';
     return;
   }
   settings = /** @type {Settings} */ (next);
@@ -593,8 +755,9 @@ $('#settings-form').addEventListener('submit', (event) => {
 /** @type {Array<[keyof Settings, string]>} */
 const settingInputs = [['focus', 'focus-input'], ['short', 'short-input'], ['long', 'long-input'], ['cycles', 'cycles-input']];
 settingInputs.forEach(([key, id]) => { /** @type {HTMLInputElement} */ ($(`#${id}`)).value = String(settings[key]); });
-/** @type {HTMLInputElement} */ ($('#sound-input')).checked = settings.sound;
 /** @type {HTMLInputElement} */ ($('#auto-start-input')).checked = settings.autoStart;
+syncSoundControls();
+void restoreCustomSound();
 populateTimeZones();
 syncClockSettings();
 initializeClockRule();
