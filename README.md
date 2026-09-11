@@ -33,7 +33,7 @@ Preferences and timer state are saved in `localStorage`; custom audio is stored 
 
 ## Quick start
 
-Use **Node.js** and **npm**
+Use **Node.js 24 LTS** and **npm 12**. The exact Node.js version used by CI is recorded in `.nvmrc`; the npm version is recorded in `package.json`.
 
 ```bash
 git clone https://github.com/mihailovily/6.am.git
