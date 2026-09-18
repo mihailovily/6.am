@@ -43,7 +43,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by the Worker. The home page introduces the modules; `/time.html` opens Time and `/note.html` opens Note.
+Open the local URL printed by the Worker. The home page introduces the modules; `/time` opens Time and `/note` opens Note. Existing `.html` URLs continue to work too.
 
 `npm run dev` starts a local D1 database and the Worker that serves the built assets, so use the Worker URL it prints (normally `http://localhost:8787/`). It also enables local-only Turnstile and Access bypasses, so note creation and the owner UI work end-to-end. `npm run dev:ui` is available when only static-page work is needed.
 
@@ -51,12 +51,12 @@ You can also open a specific view directly:
 
 | View | Path |
 | --- | --- |
-| Clock | `/time.html#clock` |
-| Stopwatch | `/time.html#stopwatch` |
-| Pomodoro | `/time.html#pomodoro` |
-| Settings | `/time.html#settings` |
-| Note | `/note.html` |
-| Note owner | `/note-admin.html` |
+| Clock | `/time#clock` |
+| Stopwatch | `/time#stopwatch` |
+| Pomodoro | `/time#pomodoro` |
+| Settings | `/time#settings` |
+| Note | `/note` |
+| Note owner | `/note-admin` |
 
 ## Built to stay simple
 
@@ -95,9 +95,9 @@ npm run build
 npm run preview
 ```
 
-Publish the contents of **`dist/`** to a static host. No application server or database is needed.
+Publish the contents of **`dist/`** to a static host. No application server or database is needed for the static pages. Configure the host to rewrite `/time`, `/note`, `/note-admin`, and `/note-view` to their matching `.html` files without redirecting; the legacy `.html` paths remain available.
 
-The Note service extends this static site with a Cloudflare Worker and D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect `/note-admin.html` and `/api/v1/admin/*` in the dashboard.
+The Note service extends this static site with a Cloudflare Worker and D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect both `/note-admin` and `/note-admin.html`, plus `/api/v1/admin/*`, in the dashboard.
 
 For a deployment under a subdirectory, set its base path at build time:
 

@@ -8,6 +8,16 @@ const pugTag = /<pug\s+src=["']([^"']+)["']\s*\/?><\/pug>/g;
 
 function pugPages() {
   let base = '/';
+  const rewritePageRoute = (server, targetPath) => {
+    server.middlewares.use((request, _response, next) => {
+      const pathname = new URL(request.url, 'http://localhost').pathname;
+      const basePrefix = base === '/' ? '' : base.slice(0, -1);
+      const route = basePrefix && pathname.startsWith(`${basePrefix}/`) ? pathname.slice(basePrefix.length) : pathname;
+      const page = Object.values(pages).find((candidate) => candidate.routes.includes(route));
+      if (page) request.url = `${basePrefix}/${targetPath(page)}`;
+      next();
+    });
+  };
   return {
     name: 'pug-pages',
     enforce: 'pre',
@@ -15,16 +25,10 @@ function pugPages() {
       base = normalizeBase(config.base);
     },
     configureServer(server) {
-      server.middlewares.use(async (request, response, next) => {
-        const pathname = new URL(request.url, 'http://localhost').pathname;
-        const basePrefix = base === '/' ? '' : base.slice(0, -1);
-        const route = basePrefix && pathname.startsWith(`${basePrefix}/`) ? pathname.slice(basePrefix.length) : pathname;
-        const page = Object.values(pages).find((candidate) => candidate.routes.includes(route));
-        if (page) {
-          request.url = `${basePrefix}/${page.source}`;
-        }
-        next();
-      });
+      rewritePageRoute(server, (page) => page.source);
+    },
+    configurePreviewServer(server) {
+      rewritePageRoute(server, (page) => page.output);
     },
     transformIndexHtml: {
       order: 'pre',

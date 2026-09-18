@@ -2,10 +2,10 @@ import { resolve } from 'node:path';
 
 export const pages = {
   home: { source: 'src/pages/index.html', output: 'index.html', routes: ['/', '/index.html'] },
-  time: { source: 'src/pages/time.html', output: 'time.html', routes: ['/time.html'] },
-  note: { source: 'src/pages/note.html', output: 'note.html', routes: ['/note.html'] },
-  noteAdmin: { source: 'src/pages/note-admin.html', output: 'note-admin.html', routes: ['/note-admin.html'] },
-  noteView: { source: 'src/pages/note-view.html', output: 'note-view.html', routes: ['/note-view.html'] }
+  time: { source: 'src/pages/time.html', output: 'time.html', routes: ['/time', '/time.html'] },
+  note: { source: 'src/pages/note.html', output: 'note.html', routes: ['/note', '/note.html'] },
+  noteAdmin: { source: 'src/pages/note-admin.html', output: 'note-admin.html', routes: ['/note-admin', '/note-admin.html'] },
+  noteView: { source: 'src/pages/note-view.html', output: 'note-view.html', routes: ['/note-view', '/note-view.html'] }
 };
 
 /** @param {string} root */

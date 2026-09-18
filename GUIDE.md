@@ -19,13 +19,14 @@ npm run dev
 После запуска открой адрес, который выведет Worker. Основные маршруты:
 
 - `/` — оглавление экосистемы;
-- `/time.html` — часы, секундомер и помодоро;
-- `/note.html` — публичное создание временной зашифрованной заметки;
-- `/note-admin.html` — создание сокращённой ссылки для владельца через Cloudflare Access;
+- `/time` — часы, секундомер и помодоро;
+- `/note` — публичное создание временной зашифрованной заметки;
+- `/note-admin` — создание сокращённой ссылки для владельца через Cloudflare Access;
+- `/note-view` — страница расшифровки заметки;
 - `/shrt/{code}` — короткая ссылка или полученная заметка;
-- `/time.html#clock`, `/time.html#stopwatch`, `/time.html#pomodoro`, `/time.html#settings` — прямые ссылки на режимы.
+- `/time#clock`, `/time#stopwatch`, `/time#pomodoro`, `/time#settings` — прямые ссылки на режимы.
 
-Без hash `/time.html` после инициализации открывает раздел часов. Настройки формата часов, часового пояса, подписи и помодоро находятся в отдельном режиме `/time.html#settings`.
+Пути с `.html` также доступны без редиректа. Без hash `/time` после инициализации открывает раздел часов. Настройки формата часов, часового пояса, подписи и помодоро находятся в отдельном режиме `/time#settings`.
 
 ## Дизайн-документация
 
@@ -53,7 +54,7 @@ npm run preview
 1. В Cloudflare создай D1 database `6-am` и подставь её ID вместо `REPLACE_WITH_D1_DATABASE_ID` в `wrangler.jsonc`.
 2. Выполни миграции: `npx wrangler d1 migrations apply 6-am --remote`.
 3. Создай Worker secrets: `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`. Публичный Turnstile site key передаётся сборке через `VITE_TURNSTILE_SITE_KEY`.
-4. В Cloudflare Zero Trust создай две Access applications: для `/note-admin.html` и `/api/v1/admin/*`, обе с Allow policy для вашего Cloudflare account member или выбранного IdP. После этого переход на `https://6am.milya.site/note-admin.html` покажет Cloudflare login, а затем owner-форму. Worker дополнительно проверяет `CF-Access-Jwt-Assertion`.
+4. В Cloudflare Zero Trust создай Access applications для `/note-admin`, `/note-admin.html` и `/api/v1/admin/*`, с Allow policy для вашего Cloudflare account member или выбранного IdP. Оба URL страницы владельца должны быть защищены. Переход на `https://6am.milya.site/note-admin` покажет Cloudflare login, а затем owner-форму. Worker дополнительно проверяет `CF-Access-Jwt-Assertion`.
 5. В WAF добавь rate-limit для `POST /api/v1/notes` (рекомендованное начальное значение: 10 запросов с IP за 10 минут).
 6. Собери и проверь bundle: `npm run build`, `npx wrangler deploy --dry-run`. Для публикации используй обычный Git-connected deploy либо `npx wrangler deploy` после проверки.
 

@@ -9,11 +9,18 @@ interface Resource { kind: 'link' | 'note'; target_url: string | null; ciphertex
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 const failure = (error: string, status = 400) => json({ error }, status);
+const cleanPageRoutes: Record<string, string> = {
+  '/time': '/time.html',
+  '/note': '/note.html',
+  '/note-admin': '/note-admin.html',
+  '/note-view': '/note-view.html'
+};
 
 function routeAsset(request: Request, env: Env) {
   const url = new URL(request.url);
   // `html_handling: none` preserves the explicit `.html` routes, so map the site root ourselves.
   if (url.pathname === '/') url.pathname = '/index.html';
+  else url.pathname = cleanPageRoutes[url.pathname] ?? url.pathname;
   return env.ASSETS.fetch(new Request(url, request));
 }
 

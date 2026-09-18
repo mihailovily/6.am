@@ -4,7 +4,7 @@
 
 ## Матрица
 
-Для каждой строки проверить `/` и `/time.html#clock`, `#stopwatch`, `#pomodoro`, `#settings`.
+Для каждой строки проверить `/` и `/time#clock`, `#stopwatch`, `#pomodoro`, `#settings`.
 
 | Viewport, CSS px | Назначение | Статус |
 | --- | --- | --- |
