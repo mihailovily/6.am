@@ -10,11 +10,12 @@ function pugPages() {
   let base = '/';
   return {
     name: 'pug-pages',
+    enforce: 'pre',
     configResolved(config) {
       base = normalizeBase(config.base);
     },
     configureServer(server) {
-      server.middlewares.use((request, _response, next) => {
+      server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url, 'http://localhost').pathname;
         const basePrefix = base === '/' ? '' : base.slice(0, -1);
         const route = basePrefix && pathname.startsWith(`${basePrefix}/`) ? pathname.slice(basePrefix.length) : pathname;

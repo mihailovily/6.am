@@ -17,9 +17,15 @@ html(lang="en", class="dark")
               strong Time
               small Clock · stopwatch · Pomodoro
             span.service-arrow(aria-hidden="true") ↗
+          a.service-card.service-card-active(href=base + "note.html")
+            span.service-index 02
+            span.service-copy
+              strong Note
+              small Encrypted temporary notes · short links
+            span.service-arrow(aria-hidden="true") ↗
           each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}, {name: 'Rituals', description: 'A place for repeatable practices'}]
             article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
-              span.service-index= `0${index + 2}`
+              span.service-index= `0${index + 3}`
               span.service-copy
                 strong= item.name
                 small= item.description

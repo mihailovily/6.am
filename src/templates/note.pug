@@ -1,0 +1,50 @@
+- var title = '6.am Note — temporary, private notes'
+- var description = 'Create an encrypted temporary note that disappears when you choose.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.note-shell
+      include _header.pug
+      main.note-main
+        p.eyebrow 6.AM / NOTE
+        h1.note-title A note for exactly as long as it needs to exist.
+        p.note-intro Your text is encrypted before it leaves this browser. The secret key stays in the link after #[code #] and is never stored by 6.am.
+        a.note-admin-link(href=base + "note-admin.html") Owner access ↗
+        form.note-card#note-form
+          label.note-label(for="note-text") Your note
+          textarea#note-text.note-text(name="text", maxlength="16384", required, placeholder="Write something temporary…")
+          .note-options
+            fieldset.note-fieldset
+              legend.note-label Lifetime
+              .choice-row
+                label.choice
+                  input(type="radio", name="ttl", value="24", checked)
+                  span 24 hours
+                label.choice
+                  input(type="radio", name="ttl", value="72")
+                  span 3 days
+                label.choice
+                  input(type="radio", name="ttl", value="168")
+                  span 7 days
+            label.choice.note-single
+              input#single-use(type="checkbox", name="singleUse")
+              span Destroy after the first reveal
+          #turnstile-slot.turnstile-slot
+          button.primary-button(type="submit") Create encrypted link
+          p.feedback#note-feedback(role="status", aria-live="polite")
+        section.note-how(aria-label="How it works")
+          article
+            span 01
+            h2 Encrypt
+            p Your browser encrypts the text with a new random key.
+          article
+            span 02
+            h2 Share
+            p Only the recipient with the complete link can reveal it.
+          article
+            span 03
+            h2 Expire
+            p The note becomes unavailable at the selected time.
+      include _footer.pug
+    script(type="module", src="/src/scripts/note.js")

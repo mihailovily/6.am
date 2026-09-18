@@ -15,6 +15,7 @@ Open-source tools for productive work. A calm space for keeping time, finding fo
 | --- | --- | --- |
 | **Time** | Clock, stopwatch, and customizable Pomodoro | Available |
 | **Tasks** | The next module in the ecosystem | Coming soon |
+| **Note** | Encrypted temporary notes and expiring short links | Available |
 | **Rituals** | A place for repeatable practices | Coming soon |
 
 ### Time
@@ -42,7 +43,9 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. The home page introduces the modules; `/time.html` opens Time.
+Open the local URL printed by the Worker. The home page introduces the modules; `/time.html` opens Time and `/note.html` opens Note.
+
+`npm run dev` starts a local D1 database and the Worker that serves the built assets, so use the Worker URL it prints (normally `http://localhost:8787/`). It also enables local-only Turnstile and Access bypasses, so note creation and the owner UI work end-to-end. `npm run dev:ui` is available when only static-page work is needed.
 
 You can also open a specific view directly:
 
@@ -52,6 +55,8 @@ You can also open a specific view directly:
 | Stopwatch | `/time.html#stopwatch` |
 | Pomodoro | `/time.html#pomodoro` |
 | Settings | `/time.html#settings` |
+| Note | `/note.html` |
+| Note owner | `/note-admin.html` |
 
 ## Built to stay simple
 
@@ -91,6 +96,8 @@ npm run preview
 ```
 
 Publish the contents of **`dist/`** to a static host. No application server or database is needed.
+
+The Note service extends this static site with a Cloudflare Worker and D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect `/note-admin.html` and `/api/v1/admin/*` in the dashboard.
 
 For a deployment under a subdirectory, set its base path at build time:
 

@@ -8,6 +8,7 @@ const root = resolve('dist');
 const baseArgument = process.argv.indexOf('--base');
 const base = normalizeBase(baseArgument >= 0 ? process.argv[baseArgument + 1] || '/' : '/');
 const pagePaths = Object.values(pages).map((page) => `/${page.output}`);
+const routeOutputs = new Map(Object.values(pages).flatMap((page) => page.routes.map((route) => [route, `/${page.output}`])));
 const contentTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
@@ -23,6 +24,7 @@ function fileForUrl(pathname) {
     else if (pathname.startsWith(base)) pathWithoutBase = `/${pathname.slice(base.length)}`;
     else throw new Error(`Path is outside configured base ${base}: ${pathname}`);
   }
+  pathWithoutBase = routeOutputs.get(pathWithoutBase) || pathWithoutBase;
   const relativePath = decodeURIComponent(pathWithoutBase === '/' ? '/index.html' : pathWithoutBase)
     .replace(/^\/+/, '')
     .replaceAll('/', sep);

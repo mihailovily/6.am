@@ -9,18 +9,26 @@
   },
   "packageManager": "npm@12.0.2",
   "scripts": {
-    "dev": "vite --configLoader runner",
+    "dev": "npm run build && npm run d1:migrate:local && wrangler dev --local --port 8787 --var ALLOW_UNVERIFIED_TURNSTILE:true --var ALLOW_UNVERIFIED_ACCESS:true",
+    "dev:ui": "vite --configLoader runner",
+    "dev:worker": "npm run build && npm run d1:migrate:local && wrangler dev --local",
+    "d1:migrate:local": "wrangler d1 migrations apply 6-am --local",
     "build": "node build.mjs",
     "preview": "vite preview --configLoader runner",
     "smoke": "node scripts/smoke-dist.mjs",
     "test": "node --test",
     "check": "tsc --noEmit",
-    "lint:css": "stylelint \"src/styles/**/*.css\""
+    "lint:css": "stylelint \"src/styles/**/*.css\"",
+    "test:worker": "node --test tests/short-domain.test.js"
   },
   "devDependencies": {
     "pug": "^3.0.4",
     "stylelint": "^17.15.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "wrangler": "^4.70.0"
+  },
+  "dependencies": {
+    "jose": "^6.1.3"
   }
 }
