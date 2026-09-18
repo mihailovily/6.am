@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { codeFor, expiryAt, validDestination, validLifetime } from '../worker/src/domain.js';
+import { assetPathFor } from '../worker/src/page-routes.js';
 import { decryptNote, encryptNote, proofFor } from '../src/scripts/note-crypto.js';
 
 test('short-code sequence starts with compact lowercase codes', () => {
@@ -24,6 +25,14 @@ test('short links accept only http and https destinations', () => {
   assert.equal(validDestination('http://localhost:3000'), true);
   assert.equal(validDestination('javascript:alert(1)'), false);
   assert.equal(validDestination('data:text/plain,nope'), false);
+});
+
+test('worker maps every clean page URL to its built HTML asset', () => {
+  assert.equal(assetPathFor('/'), '/index.html');
+  assert.equal(assetPathFor('/time'), '/time.html');
+  assert.equal(assetPathFor('/qr'), '/qr.html');
+  assert.equal(assetPathFor('/note'), '/note.html');
+  assert.equal(assetPathFor('/qr.html'), '/qr.html');
 });
 
 test('notes round-trip through AES-GCM and derive code-specific proofs', async () => {

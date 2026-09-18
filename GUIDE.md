@@ -93,4 +93,4 @@ worker/
 pages.config.js         единый реестр страниц, маршрутов и выходных имён
 ```
 
-Чтобы добавить новый сервис, создай Pug-шаблон и entry-страницу в `src/pages/`, затем один раз зарегистрируй source, output и route в `pages.config.js`. Этот реестр используется dev-сервером, production build и smoke-test. Общие визуальные правила держи в `src/styles/`, а логику страницы — в `src/scripts/`. `npm run lint:css` запрещает raw colors вне `tokens.css` и дублирующиеся селекторы.
+Чтобы добавить новый сервис, создай Pug-шаблон и entry-страницу в `src/pages/`, затем зарегистрируй source, output и route в `pages.config.js`. Этот реестр используется dev-сервером, production build и smoke-test. Если путь должен работать через Cloudflare Worker без `.html`, добавь ту же clean-route запись в `worker/src/page-routes.js`: в `wrangler.jsonc` включён `html_handling: none`, поэтому Worker не выводит это соответствие автоматически. Общие визуальные правила держи в `src/styles/`, а логику страницы — в `src/scripts/`. `npm run lint:css` запрещает raw colors вне `tokens.css` и дублирующиеся селекторы.
