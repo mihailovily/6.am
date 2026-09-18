@@ -73,7 +73,9 @@ async function attachNoteProof(request: Request, env: Env, code: string) {
   if (!payload || typeof payload.proof !== 'string' || payload.proof.length < 20 || payload.proof.length > 128 || typeof payload.creationToken !== 'string') return failure('Invalid note proof.');
   const now = Date.now();
   const result = await env.DB.prepare("UPDATE resources SET proof = ? WHERE code = ? AND kind = 'note' AND proof = 'pending' AND creation_token = ? AND expires_at > ?").bind(payload.proof, code, payload.creationToken, now).run() as { meta?: { changes?: number } };
-  return result.meta?.changes ? json({ ok: true }) : failure('This note is unavailable.', 404);
+  if (result.meta?.changes) return json({ ok: true });
+  console.warn('[6.am worker] note proof finalization failed', { code });
+  return failure('This note is unavailable.', 404);
 }
 
 async function revealNote(request: Request, env: Env, code: string) {
@@ -83,7 +85,15 @@ async function revealNote(request: Request, env: Env, code: string) {
   const oneTime = await env.DB.prepare("DELETE FROM resources WHERE code = ? AND kind = 'note' AND single_use = 1 AND proof = ? AND expires_at > ? RETURNING ciphertext, nonce, single_use").bind(code, payload.proof, now).first<Resource>();
   if (oneTime) return json({ ciphertext: oneTime.ciphertext, nonce: oneTime.nonce, singleUse: true });
   const resource = await env.DB.prepare("SELECT ciphertext, nonce, single_use FROM resources WHERE code = ? AND kind = 'note' AND proof = ? AND expires_at > ?").bind(code, payload.proof, now).first<Resource>();
-  if (!resource) return failure('This note is unavailable.', 404);
+  if (!resource) {
+    const stored = await env.DB.prepare('SELECT kind, proof, expires_at FROM resources WHERE code = ?').bind(code).first<{ kind: string; proof: string | null; expires_at: number }>();
+    const reason = !stored ? 'missing_or_consumed'
+      : stored.expires_at <= now ? 'expired'
+        : stored.kind !== 'note' ? 'not_a_note'
+          : stored.proof === 'pending' ? 'proof_not_finalized' : 'proof_mismatch';
+    console.warn('[6.am worker] note reveal unavailable', { code, reason });
+    return failure('This note is unavailable.', 404);
+  }
   return json({ ciphertext: resource.ciphertext, nonce: resource.nonce, singleUse: false });
 }
 

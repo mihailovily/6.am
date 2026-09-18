@@ -43,7 +43,7 @@ form.addEventListener('submit', async (event) => {
     const encrypted = await encryptNote(text.value);
     const response = await fetch(api, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...encrypted, expiresInHours, singleUse: singleUse.checked, turnstileToken })
+      body: JSON.stringify({ ciphertext: encrypted.ciphertext, nonce: encrypted.nonce, expiresInHours, singleUse: singleUse.checked, turnstileToken })
     });
     const payload = await readApiResponse(response, 'Create note');
     const proof = await proofFor(encrypted.key, payload.code);
@@ -51,7 +51,7 @@ form.addEventListener('submit', async (event) => {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proof, creationToken: payload.creationToken })
     });
     await readApiResponse(proofResponse, 'Finalize note');
-    const link = `${window.location.origin}${import.meta.env.BASE_URL}shrt/${payload.code}#k=${encrypted.key}&p=${proof}`;
+    const link = `${window.location.origin}${import.meta.env.BASE_URL}shrt/${payload.code}#k=${encrypted.key}`;
     try {
       if (!navigator.clipboard) throw new Error('Clipboard unavailable.');
       await navigator.clipboard.writeText(link);
