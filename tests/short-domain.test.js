@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { codeFor, expiryAt, validDestination, validLifetime } from '../worker/src/domain.js';
 import { assetPathFor } from '../worker/src/page-routes.js';
 import { decryptNote, encryptNote, proofFor } from '../src/scripts/note-crypto.js';
@@ -35,6 +36,12 @@ test('worker maps every clean page URL to its built HTML asset', () => {
   assert.equal(assetPathFor('/note'), '/note.html');
   assert.equal(assetPathFor('/qr.html'), '/qr.html');
   assert.equal(assetPathFor('/life.html'), '/life.html');
+});
+
+test('Cloudflare serves built static assets before falling through to the Worker', async () => {
+  const config = JSON.parse(await readFile('wrangler.jsonc', 'utf8'));
+  assert.equal(config.assets.run_worker_first, false);
+  assert.equal(config.assets.html_handling, 'none');
 });
 
 test('notes round-trip through AES-GCM and derive code-specific proofs', async () => {

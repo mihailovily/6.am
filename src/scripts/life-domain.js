@@ -2,15 +2,53 @@ const DAY_MS = 86_400_000;
 
 /** @typedef {{iso: string, year: number, month: number, day: number, dayNumber: number}} DateParts */
 /** @typedef {{total: number, past: number, current: number, remaining: number, percent: number}} Progress */
-/** @typedef {{calendar: 'life', width: number, height: number, timeZone: string, today: DateParts, birthday: DateParts, progress: Progress}} LifeConfig */
-/** @typedef {{calendar: 'goal', width: number, height: number, timeZone: string, today: DateParts, title: string, start: DateParts, deadline: DateParts, progress: Progress}} GoalConfig */
-/** @typedef {{calendar: 'days'|'months'|'quarters', width: number, height: number, timeZone: string, today: DateParts, progress: Progress & {year: number}}} YearConfig */
+/** @typedef {{background: string, past: string, future: string, current: string}} LifeColors */
+/** @typedef {{calendar: 'life', width: number, height: number, timeZone: string, today: DateParts, colors: LifeColors, birthday: DateParts, progress: Progress}} LifeConfig */
+/** @typedef {{calendar: 'goal', width: number, height: number, timeZone: string, today: DateParts, colors: LifeColors, title: string, start: DateParts, deadline: DateParts, progress: Progress}} GoalConfig */
+/** @typedef {{calendar: 'days'|'months'|'quarters', width: number, height: number, timeZone: string, today: DateParts, colors: LifeColors, progress: Progress & {year: number}}} YearConfig */
 /** @typedef {LifeConfig | GoalConfig | YearConfig} WallpaperConfig */
 /** @typedef {{ok: true, value: WallpaperConfig} | {ok: false, status: number, error: string}} WallpaperParseResult */
 
 export const LIFE_WEEKS = 90 * 52;
 export const MAX_GOAL_DAYS = 3660;
 export const CALENDARS = new Set(['life', 'days', 'months', 'quarters', 'goal']);
+export const LIFE_COLOR_KEYS = /** @type {const} */ (['background', 'past', 'future', 'current']);
+export const LIFE_PALETTES = /** @type {Readonly<Record<string, Readonly<LifeColors>>>} */ (Object.freeze({
+  blue: Object.freeze({ background: '08090b', past: 'f0f1f3', future: '353e47', current: 'a7bfce' }),
+  ember: Object.freeze({ background: '0d0907', past: 'f3ede7', future: '46352b', current: 'f29a4a' }),
+  grove: Object.freeze({ background: '07100b', past: 'eaf2ec', future: '2c4035', current: '67bd87' })
+}));
+export const DEFAULT_LIFE_COLORS = /** @type {Readonly<LifeColors>} */ (LIFE_PALETTES.blue);
+
+/** @param {unknown} value */
+export function normalizeHexColor(value) {
+  return typeof value === 'string' && /^[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : null;
+}
+
+/** @param {LifeColors} colors */
+export function paletteForColors(colors) {
+  for (const [name, palette] of Object.entries(LIFE_PALETTES)) {
+    if (LIFE_COLOR_KEYS.every((key) => colors[key] === palette[key])) return name;
+  }
+  return 'custom';
+}
+
+/** @param {unknown} value @param {string} fallbackTimeZone */
+export function normalizeLifeSettings(value, fallbackTimeZone = 'UTC') {
+  const fallbackZone = localDate(new Date(), fallbackTimeZone) ? fallbackTimeZone : 'UTC';
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { timeZone: fallbackZone, palette: 'blue', colors: { ...DEFAULT_LIFE_COLORS } };
+  }
+  const candidate = /** @type {{timeZone?: unknown, colors?: unknown}} */ (value);
+  const timeZone = typeof candidate.timeZone === 'string' && localDate(new Date(), candidate.timeZone) ? candidate.timeZone : fallbackZone;
+  const storedColors = candidate.colors && typeof candidate.colors === 'object' && !Array.isArray(candidate.colors)
+    ? /** @type {Record<string, unknown>} */ (candidate.colors)
+    : null;
+  const colors = storedColors && LIFE_COLOR_KEYS.every((key) => normalizeHexColor(storedColors[key]))
+    ? /** @type {LifeColors} */ (Object.fromEntries(LIFE_COLOR_KEYS.map((key) => [key, normalizeHexColor(storedColors[key])])))
+    : { ...DEFAULT_LIFE_COLORS };
+  return { timeZone, palette: paletteForColors(colors), colors };
+}
 
 /** @param {number} value @param {number} minimum @param {number} maximum */
 function clamp(value, minimum, maximum) {
@@ -122,7 +160,17 @@ export function parseWallpaperRequest(input, now = new Date()) {
   const today = localDate(now, timeZone);
   if (!today) return { ok: false, status: 400, error: 'Use a valid IANA time zone.' };
 
-  const base = { calendar, width, height, timeZone, today };
+  /** @type {LifeColors} */
+  const colors = { ...DEFAULT_LIFE_COLORS };
+  for (const key of LIFE_COLOR_KEYS) {
+    const raw = url.searchParams.get(key);
+    if (raw === null) continue;
+    const normalized = normalizeHexColor(raw);
+    if (!normalized) return { ok: false, status: 400, error: `${key[0].toUpperCase()}${key.slice(1)} must be a six-digit hex color without #.` };
+    colors[key] = normalized;
+  }
+
+  const base = { calendar, width, height, timeZone, today, colors };
   if (calendar === 'life') {
     const birthday = parseIsoDate(url.searchParams.get('birthday') || '');
     if (!birthday) return { ok: false, status: 400, error: 'Use a valid birthday in YYYY-MM-DD format.' };
@@ -155,19 +203,31 @@ function percentLabel(value) {
   return `${Math.round(value * 10) / 10}%`;
 }
 
-/** @param {number} count @param {number} columns @param {number} startX @param {number} startY @param {number} gap @param {number} radius @param {{past: number, current: number}} progress */
-function dots(count, columns, startX, startY, gap, radius, progress) {
+/** @param {string} first @param {string} second @param {number} secondWeight */
+export function mixHexColors(first, second, secondWeight) {
+  const weight = clamp(secondWeight, 0, 1);
+  const channels = [0, 2, 4].map((offset) => Math.round(
+    Number.parseInt(first.slice(offset, offset + 2), 16) * (1 - weight)
+    + Number.parseInt(second.slice(offset, offset + 2), 16) * weight
+  ));
+  return channels.map((channel) => channel.toString(16).padStart(2, '0')).join('');
+}
+
+/** @param {number} count @param {number} columns @param {number} startX @param {number} startY @param {number} gap @param {number} radius @param {{past: number, current: number}} progress @param {LifeColors} colors */
+function dots(count, columns, startX, startY, gap, radius, progress, colors) {
   let output = '';
   for (let index = 0; index < count; index += 1) {
-    const fill = index < progress.past ? '#f0f1f3' : index === progress.current ? '#a7bfce' : '#353e47';
-    output += `<circle cx="${(startX + (index % columns) * gap).toFixed(2)}" cy="${(startY + Math.floor(index / columns) * gap).toFixed(2)}" r="${radius.toFixed(2)}" fill="${fill}"/>`;
+    const fill = index < progress.past ? colors.past : index === progress.current ? colors.current : colors.future;
+    output += `<circle cx="${(startX + (index % columns) * gap).toFixed(2)}" cy="${(startY + Math.floor(index / columns) * gap).toFixed(2)}" r="${radius.toFixed(2)}" fill="#${fill}"/>`;
   }
   return output;
 }
 
 /** @param {WallpaperConfig} config */
 export function buildWallpaperSvg(config) {
-  const { width, height, calendar, progress } = config;
+  const { width, height, calendar, progress, colors } = config;
+  const secondary = mixHexColors(colors.background, colors.past, 0.65);
+  const footer = mixHexColors(colors.background, colors.past, 0.36);
   const pad = width * 0.075;
   const usableWidth = width - pad * 2;
   const contentTop = height * 0.39;
@@ -180,7 +240,7 @@ export function buildWallpaperSvg(config) {
   if (calendar === 'life') {
     const gap = Math.min(usableWidth / 51, (contentBottom - contentTop) / 89);
     const gridWidth = gap * 51;
-    graphic = dots(LIFE_WEEKS, 52, (width - gridWidth) / 2, contentTop, gap, Math.max(0.8, gap * 0.22), progress);
+    graphic = dots(LIFE_WEEKS, 52, (width - gridWidth) / 2, contentTop, gap, Math.max(0.8, gap * 0.22), progress, colors);
     heading = '90 YEARS IN WEEKS';
     summary = `${percentLabel(progress.percent)} lived · ${progress.remaining.toLocaleString('en-US')} weeks remain`;
   } else if (calendar === 'days') {
@@ -188,7 +248,7 @@ export function buildWallpaperSvg(config) {
     const rows = Math.ceil(progress.total / columns);
     const gap = Math.min(usableWidth / (columns - 1), (contentBottom - contentTop) / (rows - 1));
     const gridWidth = gap * (columns - 1);
-    graphic = dots(progress.total, columns, (width - gridWidth) / 2, contentTop, gap, Math.max(1.5, gap * 0.21), progress);
+    graphic = dots(progress.total, columns, (width - gridWidth) / 2, contentTop, gap, Math.max(1.5, gap * 0.21), progress, colors);
     heading = `${progress.year} / DAYS`;
     summary = `${progress.remaining} days remain · ${percentLabel(progress.percent)}`;
   } else if (calendar === 'months') {
@@ -204,8 +264,8 @@ export function buildWallpaperSvg(config) {
       const y = contentTop + row * blockHeight;
       const gap = Math.min(blockWidth * 0.11, blockHeight * 0.16);
       const localProgress = { past: clamp(progress.past - dayOffset, 0, days), current: progress.current - dayOffset };
-      graphic += `<text x="${x}" y="${y}" fill="#a0a5ad" font-size="${width * 0.017}" letter-spacing="${width * 0.002}">${monthNames[month]}</text>`;
-      graphic += dots(days, 7, x, y + gap, gap, Math.max(1, gap * 0.2), localProgress);
+      graphic += `<text x="${x}" y="${y}" fill="#${secondary}" font-size="${width * 0.017}" letter-spacing="${width * 0.002}">${monthNames[month]}</text>`;
+      graphic += dots(days, 7, x, y + gap, gap, Math.max(1, gap * 0.2), localProgress, colors);
       dayOffset += days;
     }
     heading = `${progress.year} / MONTHS`;
@@ -223,8 +283,8 @@ export function buildWallpaperSvg(config) {
       const y = contentTop + row * blockHeight;
       const gap = Math.min(blockWidth * 0.07, blockHeight * 0.1);
       const localProgress = { past: clamp(progress.past - dayOffset, 0, quarterDays), current: progress.current - dayOffset };
-      graphic += `<text x="${x}" y="${y}" fill="#a0a5ad" font-size="${width * 0.019}" letter-spacing="${width * 0.002}">Q${quarter + 1}</text>`;
-      graphic += dots(quarterDays, 13, x, y + gap * 1.2, gap, Math.max(1, gap * 0.2), localProgress);
+      graphic += `<text x="${x}" y="${y}" fill="#${secondary}" font-size="${width * 0.019}" letter-spacing="${width * 0.002}">Q${quarter + 1}</text>`;
+      graphic += dots(quarterDays, 13, x, y + gap * 1.2, gap, Math.max(1, gap * 0.2), localProgress, colors);
       dayOffset += quarterDays;
     }
     heading = `${progress.year} / QUARTERS`;
@@ -234,26 +294,30 @@ export function buildWallpaperSvg(config) {
     const rows = Math.ceil(progress.total / columns);
     const gap = Math.min(usableWidth / Math.max(1, columns - 1), (contentBottom - contentTop) / Math.max(1, rows - 1));
     const gridWidth = gap * Math.min(columns - 1, progress.total - 1);
-    graphic = dots(progress.total, columns, (width - gridWidth) / 2, contentTop, gap, Math.max(0.8, gap * 0.21), progress);
+    graphic = dots(progress.total, columns, (width - gridWidth) / 2, contentTop, gap, Math.max(0.8, gap * 0.21), progress, colors);
     heading = escapeXml(config.title);
     summary = `${progress.remaining} days remain · ${percentLabel(progress.percent)}`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="${width}" height="${height}" fill="#08090b"/>
-  <text x="${width / 2}" y="${contentTop - height * 0.045}" text-anchor="middle" fill="#f0f1f3" font-family="Geist, sans-serif" font-size="${Math.max(18, width * 0.035)}" font-weight="520" letter-spacing="${width * 0.0015}">${heading}</text>
+  <rect width="${width}" height="${height}" fill="#${colors.background}"/>
+  <text x="${width / 2}" y="${contentTop - height * 0.045}" text-anchor="middle" fill="#${colors.past}" font-family="Geist, sans-serif" font-size="${Math.max(18, width * 0.035)}" font-weight="520" letter-spacing="${width * 0.0015}">${heading}</text>
   ${graphic}
-  <text x="${width / 2}" y="${labelY}" text-anchor="middle" fill="#a0a5ad" font-family="Geist, sans-serif" font-size="${Math.max(13, width * 0.022)}">${summary}</text>
-  <text x="${width / 2}" y="${height * 0.957}" text-anchor="middle" fill="#59616a" font-family="Geist, sans-serif" font-size="${Math.max(10, width * 0.015)}" letter-spacing="${width * 0.003}">6.AM / LIFE</text>
+  <text x="${width / 2}" y="${labelY}" text-anchor="middle" fill="#${secondary}" font-family="Geist, sans-serif" font-size="${Math.max(13, width * 0.022)}">${summary}</text>
+  <text x="${width / 2}" y="${height * 0.957}" text-anchor="middle" fill="#${footer}" font-family="Geist, sans-serif" font-size="${Math.max(10, width * 0.015)}" letter-spacing="${width * 0.003}">6.AM / LIFE</text>
 </svg>`;
 }
 
 /** @param {WallpaperConfig} config */
 export function canonicalWallpaperParams(config) {
   const params = new URLSearchParams({
+    background: config.colors.background,
     calendar: config.calendar,
+    current: config.colors.current,
+    future: config.colors.future,
     width: String(config.width),
     height: String(config.height),
+    past: config.colors.past,
     tz: config.timeZone
   });
   if (config.calendar === 'life') params.set('birthday', config.birthday.iso);

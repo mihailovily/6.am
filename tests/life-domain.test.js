@@ -3,12 +3,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { Resvg } from '@cf-wasm/resvg/node';
 import {
+  DEFAULT_LIFE_COLORS,
   LIFE_WEEKS,
   buildWallpaperSvg,
+  canonicalWallpaperParams,
   escapeXml,
   goalProgress,
   lifeProgress,
   localDate,
+  mixHexColors,
+  normalizeLifeSettings,
   parseIsoDate,
   parseWallpaperRequest,
   wallpaperCacheKey,
@@ -63,6 +67,42 @@ test('wallpaper request validates dimensions, dates, title, and timezone', () =>
   assert.match(parseWallpaperRequest('https://6.am/x?calendar=life&width=1080&height=2400&tz=UTC&birthday=2027-01-01', now).error, /future/);
   assert.match(parseWallpaperRequest(`https://6.am/x?calendar=goal&width=1080&height=2400&tz=UTC&title=${'x'.repeat(81)}&start=2026-01-01&deadline=2026-02-01`, now).error, /80/);
   assert.match(parseWallpaperRequest('https://6.am/x?calendar=days&width=1080&height=2400&tz=Wrong%2FZone', now).error, /IANA/);
+  assert.match(parseWallpaperRequest('https://6.am/x?calendar=days&width=1080&height=2400&tz=UTC&current=orange', now).error, /six-digit/);
+  assert.match(parseWallpaperRequest('https://6.am/x?calendar=days&width=1080&height=2400&tz=UTC&background=%23ffffff', now).error, /without #/);
+});
+
+test('wallpaper colors are backward compatible, normalized, and canonical', () => {
+  const defaults = parseWallpaperRequest('https://6.am/x?calendar=days&width=1080&height=2400&tz=UTC');
+  assert.equal(defaults.ok, true);
+  assert.deepEqual(defaults.value.colors, DEFAULT_LIFE_COLORS);
+
+  const custom = parseWallpaperRequest('https://6.am/x?calendar=days&width=1080&height=2400&tz=UTC&current=F29A4A&background=0D0907');
+  assert.equal(custom.ok, true);
+  assert.deepEqual(custom.value.colors, { ...DEFAULT_LIFE_COLORS, background: '0d0907', current: 'f29a4a' });
+  const canonical = canonicalWallpaperParams(custom.value);
+  assert.equal(canonical.get('background'), '0d0907');
+  assert.equal(canonical.get('past'), DEFAULT_LIFE_COLORS.past);
+  assert.equal(canonical.get('current'), 'f29a4a');
+});
+
+test('stored Life settings normalize invalid data without throwing', () => {
+  const fallback = normalizeLifeSettings(null, 'Europe/Moscow');
+  assert.equal(fallback.timeZone, 'Europe/Moscow');
+  assert.equal(fallback.palette, 'blue');
+  assert.deepEqual(fallback.colors, DEFAULT_LIFE_COLORS);
+
+  const custom = normalizeLifeSettings({
+    timeZone: 'America/New_York',
+    palette: 'unknown',
+    colors: { background: '101010', past: 'EEEEEE', future: '303030', current: '00AA77' }
+  }, 'UTC');
+  assert.equal(custom.timeZone, 'America/New_York');
+  assert.equal(custom.palette, 'custom');
+  assert.deepEqual(custom.colors, { background: '101010', past: 'eeeeee', future: '303030', current: '00aa77' });
+
+  const corrupt = normalizeLifeSettings({ timeZone: 'Wrong/Zone', colors: { background: 'bad' } }, 'UTC');
+  assert.equal(corrupt.timeZone, 'UTC');
+  assert.deepEqual(corrupt.colors, DEFAULT_LIFE_COLORS);
 });
 
 test('SVG escapes goal titles and cache identity changes with the local date', () => {
@@ -75,6 +115,21 @@ test('SVG escapes goal titles and cache identity changes with the local date', (
   assert.match(svg, /&lt;script&gt;&amp;/);
   assert.doesNotMatch(svg, /<script>/);
   assert.notEqual(wallpaperCacheKey(first.value), wallpaperCacheKey(second.value));
+});
+
+test('SVG and cache identity use the selected palette', () => {
+  const base = 'https://6.am/x?calendar=days&width=320&height=568&tz=UTC';
+  const standard = parseWallpaperRequest(base, new Date('2026-09-19T12:00:00Z'));
+  const ember = parseWallpaperRequest(`${base}&background=0d0907&past=f3ede7&future=46352b&current=f29a4a`, new Date('2026-09-19T12:00:00Z'));
+  assert.equal(standard.ok, true);
+  assert.equal(ember.ok, true);
+  const svg = buildWallpaperSvg(ember.value);
+  assert.match(svg, /fill="#0d0907"/);
+  assert.match(svg, /fill="#f3ede7"/);
+  assert.match(svg, /fill="#46352b"/);
+  assert.match(svg, /fill="#f29a4a"/);
+  assert.match(svg, new RegExp(`fill="#${mixHexColors('0d0907', 'f3ede7', 0.65)}"`));
+  assert.notEqual(wallpaperCacheKey(standard.value), wallpaperCacheKey(ember.value));
 });
 
 test('renderer creates a PNG with the requested IHDR dimensions', async () => {

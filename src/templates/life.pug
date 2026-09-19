@@ -17,9 +17,10 @@ html(lang="en", class="dark")
           h1.life-title See the time you have.
           p.life-intro Turn life, year, or goal progress into a quiet lock-screen ritual that refreshes every day.
         .life-tabs(role="tablist", aria-label="Calendar type")
-          button.life-tab#life-tab(type="button", role="tab", aria-selected="true", aria-controls="life-workspace", data-calendar="life") Life
-          button.life-tab#year-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-calendar="year") Year
-          button.life-tab#goal-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-calendar="goal") Goal
+          button.life-tab#life-tab(type="button", role="tab", aria-selected="true", aria-controls="life-workspace", data-view="life") Life
+          button.life-tab#year-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-view="year") Year
+          button.life-tab#goal-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-view="goal") Goal
+          button.life-tab#settings-tab(type="button", role="tab", aria-selected="false", aria-controls="life-settings-panel", tabindex="-1", data-view="settings") Settings
         section.life-workspace#life-workspace(role="tabpanel", aria-labelledby="life-tab")
           form.life-controls#life-form(novalidate)
             .life-control-section#year-layout-section(hidden)
@@ -71,16 +72,12 @@ html(lang="en", class="dark")
                 label.life-field(for="custom-height")
                   span Height, px
                   input#custom-height(type="number", min="568", max="4320", step="1", value="2400", inputmode="numeric")
-              label.life-field(for="life-timezone")
-                span Time zone
-                input#life-timezone(name="tz", type="text", value="UTC", required, spellcheck="false")
-              p.settings-note Used to choose the current day when the wallpaper is requested.
             p.feedback.error#life-error(role="alert", aria-live="polite")
             .life-actions
               button.primary-button#copy-wallpaper(type="button") Copy wallpaper URL
               button.text-button#download-wallpaper(type="button") Download PNG
               button.text-button#open-install(type="button") Installation guide
-            p.life-privacy Dates and goal titles are included in the generated URL. Anyone with that URL can read them. 6.am does not save the configuration.
+            p.life-privacy Dates and goal titles are included in the generated URL. Anyone with that URL can read them. 6.am does not store the configuration on the server; preferences may be saved in your browser.
           aside.life-preview-column(aria-label="Wallpaper preview")
             .phone-frame
               .phone-speaker(aria-hidden="true")
@@ -90,6 +87,56 @@ html(lang="en", class="dark")
               span Generated endpoint
               output#wallpaper-url
             p.feedback#life-feedback(role="status", aria-live="polite")
+        section.life-settings#life-settings-panel(role="tabpanel", aria-labelledby="settings-tab", tabindex="0", hidden)
+          form.life-settings-form#life-settings-form(novalidate)
+            .settings-heading
+              span.settings-icon(aria-hidden="true")
+                svg(viewBox="0 0 24 24")
+                  path(d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.4-3.5a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.5 1a8 8 0 0 0-1.7-1L14.7 3h-4l-.4 2.9a8 8 0 0 0-1.7 1L6 6 4 9.5 6.1 11a7 7 0 0 0 0 2L4 14.5 6 18l2.6-1a8 8 0 0 0 1.7 1l.4 3h4l.4-3a8 8 0 0 0 1.7-1l2.6 1 2-3.5-2.1-1.5a7 7 0 0 0 .1-1Z")
+              div
+                p.eyebrow LIFE / PREFERENCES
+                h2 Settings
+            .life-settings-section
+              h3 Calendar day
+              p.settings-note The time zone decides when the wallpaper moves to the next day.
+              label.life-field(for="life-timezone")
+                span Time zone
+                input#life-timezone(name="tz", type="text", value="UTC", list="life-timezone-options", autocomplete="off", required, spellcheck="false")
+                datalist#life-timezone-options
+            .life-settings-section
+              h3 Wallpaper palette
+              p.settings-note One palette is shared by Life, Year, and Goal wallpapers.
+              fieldset.life-palette-options
+                legend.sr-only Choose a palette
+                each palette in [{id: 'blue', name: '6.am Blue', colors: ['#08090b', '#f0f1f3', '#353e47', '#a7bfce']}, {id: 'ember', name: 'Ember', colors: ['#0d0907', '#f3ede7', '#46352b', '#f29a4a']}, {id: 'grove', name: 'Grove', colors: ['#07100b', '#eaf2ec', '#2c4035', '#67bd87']}, {id: 'custom', name: 'Custom', colors: []}]
+                  label.life-palette-card
+                    input(type="radio", name="palette", value=palette.id, checked=palette.id === 'blue')
+                    span.life-palette-name= palette.name
+                    if palette.colors.length
+                      span.life-palette-swatches(aria-hidden="true")
+                        each color in palette.colors
+                          i(style=`--swatch: ${color}`)
+                    else
+                      span.life-palette-custom-mark(aria-hidden="true") +
+              .life-custom-colors#life-custom-colors(hidden)
+                each color in [{id: 'background', label: 'Background'}, {id: 'past', label: 'Past'}, {id: 'future', label: 'Future'}, {id: 'current', label: 'Current'}]
+                  .life-color-field
+                    label(for=`life-${color.id}-hex`)= color.label
+                    .life-color-controls
+                      input.life-color-picker(type="color", value="#000000", data-color-picker=color.id, aria-label=`Choose ${color.label.toLowerCase()} color`)
+                      input.life-color-hex(id=`life-${color.id}-hex`, type="text", value="000000", maxlength="7", inputmode="text", autocomplete="off", spellcheck="false", data-color-hex=color.id, aria-label=`${color.label} hex color`)
+            .life-palette-preview#life-palette-preview(aria-label="Palette preview")
+              .life-palette-preview-title 90 YEARS IN WEEKS
+              .life-palette-preview-dots(aria-hidden="true")
+                each _, dot in Array(28)
+                  i(class=dot < 12 ? 'is-past' : dot === 12 ? 'is-current' : '')
+              .life-palette-preview-label YOUR TIME, IN VIEW
+            p.life-contrast-warning#life-contrast-warning(role="status", hidden) Some states may be difficult to distinguish. You can still save this palette.
+            .life-settings-actions
+              button.primary-button(type="submit") Save settings
+              button.text-button#reset-life-settings(type="button") Reset settings
+            p.feedback#life-settings-feedback(role="status", aria-live="polite")
+            p.feedback.error#life-settings-error(role="alert", aria-live="assertive")
       include _footer.pug
 
     dialog.install-dialog#install-dialog(aria-labelledby="install-title")

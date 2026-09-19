@@ -27,7 +27,7 @@ npm run dev
 - `/shrt/{code}` — короткая ссылка или полученная заметка;
 - `/time#clock`, `/time#stopwatch`, `/time#pomodoro`, `/time#settings` — прямые ссылки на режимы.
 
-Life генерирует PNG через `GET /api/v1/life/wallpaper.png`. Параметры календаря находятся в query string и не сохраняются в D1; постоянную ссылку можно использовать в iOS Shortcuts или MacroDroid.
+Life генерирует PNG через `GET /api/v1/life/wallpaper.png`. Параметры календаря, IANA-таймзона и цвета `background`, `past`, `future`, `current` находятся в query string и не сохраняются в D1; постоянную ссылку можно использовать в iOS Shortcuts или MacroDroid. Выбранные во вкладке Settings таймзона и палитра дополнительно сохраняются в браузере под ключом `6am-life-settings-v1`, а Reset удаляет только эти локальные предпочтения.
 
 Пути с `.html` также доступны без редиректа. Без hash `/time` после инициализации открывает раздел часов. Настройки формата часов, часового пояса, подписи и помодоро находятся в отдельном режиме `/time#settings`.
 

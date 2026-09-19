@@ -101,7 +101,9 @@ npm run preview
 
 Publish the contents of **`dist/`** to a static host. No application server or database is needed for the static pages. Configure the host to rewrite `/time`, `/life`, `/qr`, `/note`, `/note-admin`, and `/note-view` to their matching `.html` files without redirecting; the legacy `.html` paths remain available.
 
-Life and Note extend this static site with a Cloudflare Worker. Life renders stateless PNG wallpapers at `/api/v1/life/wallpaper.png`; Note uses D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect both `/note-admin` and `/note-admin.html`, plus `/api/v1/admin/*`, in the dashboard.
+Life and Note extend this static site with a Cloudflare Worker. Life renders stateless PNG wallpapers at `/api/v1/life/wallpaper.png`; Note uses D1. Life's public endpoint accepts `calendar`, `width`, `height`, `tz`, and the optional six-digit hex colors `background`, `past`, `future`, and `current`, plus the calendar-specific date and title parameters. The Life page stores the preferred time zone and palette locally under `6am-life-settings-v1`, while every generated wallpaper URL remains self-contained and the Worker stores neither the configuration nor the PNG in D1.
+
+Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect both `/note-admin` and `/note-admin.html`, plus `/api/v1/admin/*`, in the dashboard.
 
 For a deployment under a subdirectory, set its base path at build time:
 

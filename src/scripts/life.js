@@ -1,4 +1,6 @@
-import { parseWallpaperRequest } from './life-domain.js';
+import { DEFAULT_LIFE_COLORS, LIFE_COLOR_KEYS, LIFE_PALETTES, localDate, mixHexColors, normalizeHexColor, normalizeLifeSettings, paletteForColors, parseWallpaperRequest } from './life-domain.js';
+
+const STORAGE_KEY = '6am-life-settings-v1';
 
 /** @param {string} selector */
 function element(selector) {
@@ -8,8 +10,14 @@ function element(selector) {
 }
 
 const form = /** @type {HTMLFormElement} */ (element('#life-form'));
+const settingsForm = /** @type {HTMLFormElement} */ (element('#life-settings-form'));
+const generatorPanel = /** @type {HTMLElement} */ (element('#life-workspace'));
+const settingsPanel = /** @type {HTMLElement} */ (element('#life-settings-panel'));
 const tabs = [...document.querySelectorAll('.life-tab')].map((item) => /** @type {HTMLButtonElement} */ (item));
 const layoutButtons = [...document.querySelectorAll('[data-layout]')].map((item) => /** @type {HTMLButtonElement} */ (item));
+const paletteInputs = [...document.querySelectorAll('input[name="palette"]')].map((item) => /** @type {HTMLInputElement} */ (item));
+const colorHexInputs = Object.fromEntries([...document.querySelectorAll('[data-color-hex]')].map((item) => [/** @type {HTMLInputElement} */ (item).dataset.colorHex, item]));
+const colorPickers = Object.fromEntries([...document.querySelectorAll('[data-color-picker]')].map((item) => [/** @type {HTMLInputElement} */ (item).dataset.colorPicker, item]));
 const birthdaySection = /** @type {HTMLElement} */ (element('#birthday-section'));
 const yearLayoutSection = /** @type {HTMLElement} */ (element('#year-layout-section'));
 const goalSection = /** @type {HTMLElement} */ (element('#goal-section'));
@@ -22,6 +30,12 @@ const customSize = /** @type {HTMLElement} */ (element('#custom-size'));
 const customWidth = /** @type {HTMLInputElement} */ (element('#custom-width'));
 const customHeight = /** @type {HTMLInputElement} */ (element('#custom-height'));
 const timeZoneInput = /** @type {HTMLInputElement} */ (element('#life-timezone'));
+const customColors = /** @type {HTMLElement} */ (element('#life-custom-colors'));
+const palettePreview = /** @type {HTMLElement} */ (element('#life-palette-preview'));
+const contrastWarning = /** @type {HTMLElement} */ (element('#life-contrast-warning'));
+const settingsFeedback = /** @type {HTMLElement} */ (element('#life-settings-feedback'));
+const settingsError = /** @type {HTMLElement} */ (element('#life-settings-error'));
+const resetSettingsButton = /** @type {HTMLButtonElement} */ (element('#reset-life-settings'));
 const preview = /** @type {HTMLImageElement} */ (element('#wallpaper-preview'));
 const previewLoading = /** @type {HTMLElement} */ (element('#preview-loading'));
 const urlOutput = /** @type {HTMLOutputElement} */ (element('#wallpaper-url'));
@@ -43,10 +57,27 @@ const installFeedback = /** @type {HTMLElement} */ (element('#install-feedback')
 
 /** @type {'life'|'year'|'goal'} */
 let mode = 'life';
+/** @type {'life'|'year'|'goal'|'settings'} */
+let activeView = 'life';
 /** @type {'days'|'months'|'quarters'} */
 let layout = 'days';
 let currentWallpaperUrl = '';
 let renderTimer = 0;
+
+function browserTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; }
+}
+
+function readStoredSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return normalizeLifeSettings(raw ? JSON.parse(raw) : null, browserTimeZone());
+  } catch {
+    return normalizeLifeSettings(null, browserTimeZone());
+  }
+}
+
+let appliedSettings = readStoredSettings();
 
 function localIso(date = new Date()) {
   const year = date.getFullYear();
@@ -61,7 +92,70 @@ function setDefaults() {
   deadline.setDate(deadline.getDate() + 90);
   goalStart.value = localIso(today);
   goalDeadline.value = localIso(deadline);
-  try { timeZoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { timeZoneInput.value = 'UTC'; }
+}
+
+function populateTimeZones() {
+  try {
+    const supportedValuesOf = /** @type {{supportedValuesOf?: (key: 'timeZone') => string[]}} */ (Intl).supportedValuesOf;
+    if (!supportedValuesOf) return;
+    const options = supportedValuesOf('timeZone').map((timeZone) => {
+      const option = document.createElement('option');
+      option.value = timeZone;
+      return option;
+    });
+    element('#life-timezone-options').replaceChildren(...options);
+  } catch {}
+}
+
+/** @param {unknown} value */
+function inputHex(value) {
+  return normalizeHexColor(typeof value === 'string' ? value.trim().replace(/^#/, '') : value);
+}
+
+/** @param {{timeZone: string, palette: string, colors: import('./life-domain.js').LifeColors}} settings */
+function syncSettingsInputs(settings) {
+  timeZoneInput.value = settings.timeZone;
+  const palette = settings.palette in LIFE_PALETTES || settings.palette === 'custom' ? settings.palette : paletteForColors(settings.colors);
+  paletteInputs.forEach((input) => { input.checked = input.value === palette; });
+  for (const key of LIFE_COLOR_KEYS) {
+    const value = normalizeHexColor(settings.colors[key]) || DEFAULT_LIFE_COLORS[key];
+    /** @type {HTMLInputElement} */ (colorHexInputs[key]).value = value.toUpperCase();
+    /** @type {HTMLInputElement} */ (colorPickers[key]).value = `#${value}`;
+  }
+  customColors.hidden = palette !== 'custom';
+  updatePalettePreview();
+}
+
+function draftColors() {
+  return Object.fromEntries(LIFE_COLOR_KEYS.map((key) => [key, inputHex(/** @type {HTMLInputElement} */ (colorHexInputs[key]).value)]));
+}
+
+/** @param {string} hex */
+function luminance(hex) {
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
+    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+}
+
+/** @param {string} first @param {string} second */
+function contrast(first, second) {
+  const light = Math.max(luminance(first), luminance(second));
+  const dark = Math.min(luminance(first), luminance(second));
+  return (light + 0.05) / (dark + 0.05);
+}
+
+function updatePalettePreview() {
+  const colors = draftColors();
+  if (Object.values(colors).some((value) => !value)) return;
+  const valid = /** @type {Record<string, string>} */ (colors);
+  palettePreview.style.setProperty('--preview-background', `#${valid.background}`);
+  palettePreview.style.setProperty('--preview-past', `#${valid.past}`);
+  palettePreview.style.setProperty('--preview-future', `#${valid.future}`);
+  palettePreview.style.setProperty('--preview-current', `#${valid.current}`);
+  palettePreview.style.setProperty('--preview-secondary', `#${mixHexColors(valid.background, valid.past, 0.65)}`);
+  contrastWarning.hidden = contrast(valid.background, valid.past) >= 3
+    && contrast(valid.background, valid.future) >= 1.15
+    && contrast(valid.future, valid.current) >= 1.25;
 }
 
 function dimensions() {
@@ -77,7 +171,8 @@ function endpointUrl() {
   url.searchParams.set('calendar', calendar);
   url.searchParams.set('width', width);
   url.searchParams.set('height', height);
-  url.searchParams.set('tz', timeZoneInput.value.trim());
+  url.searchParams.set('tz', appliedSettings.timeZone);
+  for (const [key, value] of Object.entries(appliedSettings.colors)) url.searchParams.set(key, value);
   if (calendar === 'life') url.searchParams.set('birthday', birthdayInput.value);
   if (calendar === 'goal') {
     url.searchParams.set('title', goalTitle.value.trim());
@@ -91,6 +186,7 @@ function endpointUrl() {
 function updatePageQuery(endpoint) {
   const page = new URL(window.location.href);
   page.search = endpoint.search;
+  page.hash = activeView === 'settings' ? 'settings' : '';
   window.history.replaceState(null, '', page);
 }
 
@@ -126,17 +222,23 @@ function scheduleRender() {
 }
 
 function updateControls() {
+  const settingsSelected = activeView === 'settings';
+  generatorPanel.hidden = settingsSelected;
+  settingsPanel.hidden = !settingsSelected;
   birthdaySection.hidden = mode !== 'life';
   yearLayoutSection.hidden = mode !== 'year';
   goalSection.hidden = mode !== 'goal';
   customSize.hidden = deviceSelect.value !== 'custom';
   tabs.forEach((tab) => {
-    const selected = tab.dataset.calendar === mode;
+    const selected = tab.dataset.view === activeView;
     tab.setAttribute('aria-selected', String(selected));
     tab.tabIndex = selected ? 0 : -1;
   });
-  element('#life-workspace').setAttribute('aria-labelledby', `${mode}-tab`);
-  scheduleRender();
+  generatorPanel.setAttribute('aria-labelledby', `${mode}-tab`);
+  const page = new URL(window.location.href);
+  page.hash = settingsSelected ? 'settings' : '';
+  window.history.replaceState(null, '', page);
+  if (!settingsSelected) scheduleRender();
 }
 
 function restoreQuery() {
@@ -147,16 +249,26 @@ function restoreQuery() {
     mode = 'year';
     layout = /** @type {'days'|'months'|'quarters'} */ (calendar);
   }
+  activeView = window.location.hash === '#settings' ? 'settings' : mode;
   const birthday = params.get('birthday');
   const title = params.get('title');
   const start = params.get('start');
   const deadline = params.get('deadline');
-  const timeZone = params.get('tz');
   if (birthday) birthdayInput.value = birthday;
   if (title) goalTitle.value = title;
   if (start) goalStart.value = start;
   if (deadline) goalDeadline.value = deadline;
-  if (timeZone) timeZoneInput.value = timeZone;
+
+  const urlTimeZone = params.get('tz');
+  if (urlTimeZone && localDate(new Date(), urlTimeZone)) appliedSettings.timeZone = urlTimeZone;
+  const urlColors = { ...appliedSettings.colors };
+  for (const key of LIFE_COLOR_KEYS) {
+    const value = params.get(key);
+    const normalized = value ? normalizeHexColor(value) : null;
+    if (normalized) urlColors[key] = normalized;
+  }
+  appliedSettings = { ...appliedSettings, palette: paletteForColors(urlColors), colors: urlColors };
+  syncSettingsInputs(appliedSettings);
 
   const width = params.get('width');
   const height = params.get('height');
@@ -224,20 +336,21 @@ function showPlatform(platform) {
 }
 
 tabs.forEach((tab, index) => {
-  tab.addEventListener('click', () => {
-    const selected = tab.dataset.calendar;
-    if (selected === 'life' || selected === 'year' || selected === 'goal') mode = selected;
+  const activate = () => {
+    const selected = tab.dataset.view;
+    if (selected === 'life' || selected === 'year' || selected === 'goal') {
+      mode = selected;
+      activeView = selected;
+    } else if (selected === 'settings') activeView = 'settings';
     updateControls();
-  });
+  };
+  tab.addEventListener('click', activate);
   tab.addEventListener('keydown', (event) => {
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    const direction = event.key === 'ArrowRight' ? 1 : -1;
-    const next = tabs[(index + direction + tabs.length) % tabs.length];
-    const selected = next.dataset.calendar;
-    if (selected === 'life' || selected === 'year' || selected === 'goal') mode = selected;
-    updateControls();
-    next.focus();
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[nextIndex].click();
+    tabs[nextIndex].focus();
   });
 });
 
@@ -251,6 +364,72 @@ layoutButtons.forEach((button) => button.addEventListener('click', () => {
   });
   scheduleRender();
 }));
+
+paletteInputs.forEach((input) => input.addEventListener('change', () => {
+  if (!input.checked) return;
+  customColors.hidden = input.value !== 'custom';
+  if (input.value in LIFE_PALETTES) syncSettingsInputs({ timeZone: timeZoneInput.value, palette: input.value, colors: LIFE_PALETTES[input.value] });
+  else updatePalettePreview();
+  settingsFeedback.textContent = '';
+}));
+
+for (const key of LIFE_COLOR_KEYS) {
+  const hex = /** @type {HTMLInputElement} */ (colorHexInputs[key]);
+  const picker = /** @type {HTMLInputElement} */ (colorPickers[key]);
+  hex.addEventListener('input', () => {
+    const value = inputHex(hex.value);
+    if (value) picker.value = `#${value}`;
+    const custom = paletteInputs.find((input) => input.value === 'custom');
+    if (custom) custom.checked = true;
+    customColors.hidden = false;
+    updatePalettePreview();
+  });
+  picker.addEventListener('input', () => {
+    hex.value = picker.value.slice(1).toUpperCase();
+    const custom = paletteInputs.find((input) => input.value === 'custom');
+    if (custom) custom.checked = true;
+    customColors.hidden = false;
+    updatePalettePreview();
+  });
+}
+
+settingsForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  settingsFeedback.textContent = '';
+  settingsError.textContent = '';
+  const timeZone = timeZoneInput.value.trim();
+  if (!localDate(new Date(), timeZone)) {
+    settingsError.textContent = 'Enter a valid IANA time zone, such as Europe/Moscow.';
+    timeZoneInput.focus();
+    return;
+  }
+  const colors = draftColors();
+  const invalidKey = Object.keys(colors).find((key) => !colors[key]);
+  if (invalidKey) {
+    settingsError.textContent = `${invalidKey[0].toUpperCase()}${invalidKey.slice(1)} must be a six-digit hex color.`;
+    /** @type {HTMLInputElement} */ (colorHexInputs[invalidKey]).focus();
+    return;
+  }
+  const validColors = /** @type {import('./life-domain.js').LifeColors} */ (colors);
+  appliedSettings = { timeZone, palette: paletteForColors(validColors), colors: validColors };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appliedSettings));
+    settingsFeedback.textContent = 'Settings saved on this device and applied to the wallpaper URL.';
+  } catch {
+    settingsFeedback.textContent = 'Settings are applied to this URL, but this browser could not save them.';
+  }
+  syncSettingsInputs(appliedSettings);
+  render();
+});
+
+resetSettingsButton.addEventListener('click', () => {
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  appliedSettings = normalizeLifeSettings(null, browserTimeZone());
+  syncSettingsInputs(appliedSettings);
+  settingsError.textContent = '';
+  settingsFeedback.textContent = 'Life settings reset to the 6.am palette and your browser time zone.';
+  render();
+});
 
 form.addEventListener('input', scheduleRender);
 form.addEventListener('change', () => { customSize.hidden = deviceSelect.value !== 'custom'; scheduleRender(); });
@@ -300,5 +479,6 @@ copyInstallUrl.addEventListener('click', () => copyText(currentWallpaperUrl, 'Wa
 dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
 
 setDefaults();
+populateTimeZones();
 restoreQuery();
 updateControls();
