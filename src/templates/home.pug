@@ -35,7 +35,7 @@ html(lang="en", class="dark")
               strong Life
               small Life · year · goal wallpapers
             span.service-arrow(aria-hidden="true") ↗
-          each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}, {name: 'Rituals', description: 'A place for repeatable practices'}]
+          each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}]
             article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
               span.service-index= `0${index + 5}`
               span.service-copy
