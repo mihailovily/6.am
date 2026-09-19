@@ -16,7 +16,7 @@ main,
   min-width: 0;
 }
 
-.time-main { padding-top: 28px; }
+.time-main { flex: 1 0 auto; padding-top: 28px; }
 
 .work-grid {
   display: grid;
@@ -126,77 +126,9 @@ td { color: var(--body-text-muted); font: .8125rem Consolas, monospace; }
 .fullscreen-button:hover { color: var(--foreground); }
 .fullscreen-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 
-/* Used both for the native Fullscreen API and its in-page fallback. */
-html.time-fullscreen,
-html.time-fullscreen body {
-  height: 100%;
-  min-height: 100%;
-  overflow: hidden;
-  background: var(--background);
-}
-
-.time-fullscreen .site-shell { width: 100%; max-width: none; min-height: 100vh; padding: 0; }
-.time-fullscreen .site-header,
-.time-fullscreen footer { display: none; }
-.time-fullscreen .time-main { padding-top: 0; }
-.time-fullscreen main,
-.time-fullscreen .view-panel:not([hidden]) { min-height: 100vh; }
-.time-fullscreen .view-panel > .work-grid { min-height: 100vh; border: 0; border-radius: 0; }
-.time-fullscreen .timer-panel,
-.time-fullscreen .alternate-panel {
-  min-height: 100vh;
-  padding: clamp(24px, 5vw, 80px);
-  border: 0;
-  border-radius: 0;
-  background: var(--background);
-}
-.time-fullscreen .alternate-panel:not(.stopwatch-panel) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.time-fullscreen .timer-center { padding: clamp(24px, 4vh, 56px) 0; }
-.time-fullscreen .timer-digits {
-  font-size: clamp(5rem, min(14vw, 28vh), 16rem);
-  line-height: 1.12;
-}
-
 .stopwatch-panel {
   display: flex;
   flex-direction: column;
-}
-
-.time-fullscreen .stopwatch-panel { position: relative; }
-.time-fullscreen .stopwatch-panel h1 { margin-top: 0; }
-.time-fullscreen .stopwatch-digits {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  margin: 0;
-  transform: translateY(-50%);
-}
-.time-fullscreen #stopwatch-actions {
-  position: absolute;
-  right: 0;
-  bottom: clamp(24px, 5vw, 80px);
-  left: 0;
-  margin: 0;
-}
-.time-fullscreen .stopwatch-panel .empty-note {
-  position: absolute;
-  right: 0;
-  bottom: calc(clamp(24px, 5vw, 80px) + 74px);
-  left: 0;
-  margin: 0;
-}
-.time-fullscreen .stopwatch-panel .laps:not([hidden]) {
-  position: absolute;
-  top: clamp(120px, 16vh, 190px);
-  right: clamp(24px, 5vw, 80px);
-  left: clamp(24px, 5vw, 80px);
-  max-height: min(20vh, 220px);
-  margin: 0 auto;
 }
 
 .stopwatch-panel .laps {
@@ -392,12 +324,12 @@ html.time-fullscreen body {
   .clock-rule i { height: 4px; }
   .clock-rule i:nth-child(5n + 1) { height: 16px; }
 
-  .stopwatch-actions.is-initial #stopwatch-reset,
-  .stopwatch-actions.is-initial #stopwatch-lap,
-  .stopwatch-actions.is-running #stopwatch-reset,
-  .stopwatch-actions.is-paused #stopwatch-lap { display: none; }
+  #stopwatch-actions.is-initial #stopwatch-reset,
+  #stopwatch-actions.is-initial #stopwatch-lap,
+  #stopwatch-actions.is-running #stopwatch-reset,
+  #stopwatch-actions.is-paused #stopwatch-lap { display: none; }
 
-  .stopwatch-actions.is-initial .primary-button { width: min(100%, 320px); }
+  #stopwatch-actions.is-initial .primary-button { flex: 0 1 320px; width: 100%; max-width: 320px; }
 
   .settings-section-divider { display: block; height: 1px; margin: 0; background: var(--border); }
   .settings-apply { width: 100%; min-height: 52px; margin-top: 20px; }
@@ -430,4 +362,103 @@ html.time-fullscreen body {
   .timer-panel { padding: 20px 12px; }
   .settings-panel { padding: 24px 18px; }
   .field-stack { gap: 18px 12px; }
+}
+
+/* Keep fullscreen rules after mobile overrides so both native and fallback fullscreen use the viewport stage. */
+html.time-fullscreen,
+html.time-fullscreen body {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.time-fullscreen .site-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.time-fullscreen .site-header,
+.time-fullscreen footer { display: none; }
+
+.time-fullscreen .time-main { flex: 1 1 auto; padding-top: 0; }
+.time-fullscreen main,
+.time-fullscreen .view-panel:not([hidden]) {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.time-fullscreen .view-panel > .work-grid,
+.time-fullscreen .view-panel > .alternate-panel {
+  min-height: 100vh;
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+
+.time-fullscreen .timer-panel,
+.time-fullscreen .alternate-panel {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(clamp(24px, 5vw, 80px), env(safe-area-inset-top)) max(clamp(24px, 5vw, 80px), env(safe-area-inset-right)) max(clamp(24px, 5vw, 80px), env(safe-area-inset-bottom)) max(clamp(24px, 5vw, 80px), env(safe-area-inset-left));
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  background: var(--background);
+}
+
+.time-fullscreen .alternate-panel:not(.stopwatch-panel) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.time-fullscreen .timer-panel { justify-content: center; }
+.time-fullscreen .timer-center { flex: 0 0 auto; padding: 0; }
+.time-fullscreen .timer-bottom { margin-top: clamp(20px, 3vh, 40px); }
+.time-fullscreen .timer-actions { margin-top: clamp(18px, 3vh, 32px); }
+.time-fullscreen .completion-notice { min-height: 22px; }
+.time-fullscreen .timer-digits {
+  font-size: clamp(5rem, min(14vw, 28vh), 16rem);
+  line-height: 1.12;
+}
+
+.time-fullscreen .stopwatch-panel { position: relative; overflow: hidden; }
+.time-fullscreen .stopwatch-panel h1 { margin-top: 0; }
+.time-fullscreen .stopwatch-digits {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.time-fullscreen #stopwatch-actions {
+  position: absolute;
+  bottom: max(clamp(24px, 5vw, 80px), env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(calc(100% - 32px), 520px);
+  margin: 0;
+  transform: translateX(-50%);
+}
+
+.time-fullscreen .stopwatch-panel .empty-note {
+  position: absolute;
+  right: 16px;
+  bottom: calc(max(clamp(24px, 5vw, 80px), env(safe-area-inset-bottom)) + 74px);
+  left: 16px;
+  margin: 0;
+}
+
+.time-fullscreen .stopwatch-panel .laps:not([hidden]) {
+  position: absolute;
+  top: clamp(120px, 16vh, 190px);
+  right: clamp(24px, 5vw, 80px);
+  left: clamp(24px, 5vw, 80px);
+  max-height: min(20vh, 220px);
+  margin: 0 auto;
 }

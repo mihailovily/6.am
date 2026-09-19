@@ -8,6 +8,8 @@ const root = resolve('dist');
 const baseArgument = process.argv.indexOf('--base');
 const base = normalizeBase(baseArgument >= 0 ? process.argv[baseArgument + 1] || '/' : '/');
 const pagePaths = Object.values(pages).map((page) => `/${page.output}`);
+const routeOutputs = new Map(Object.values(pages).flatMap((page) => page.routes.map((route) => [route, `/${page.output}`])));
+const publicRoutes = [...routeOutputs.keys()];
 const contentTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
@@ -23,6 +25,7 @@ function fileForUrl(pathname) {
     else if (pathname.startsWith(base)) pathWithoutBase = `/${pathname.slice(base.length)}`;
     else throw new Error(`Path is outside configured base ${base}: ${pathname}`);
   }
+  pathWithoutBase = routeOutputs.get(pathWithoutBase) || pathWithoutBase;
   const relativePath = decodeURIComponent(pathWithoutBase === '/' ? '/index.html' : pathWithoutBase)
     .replace(/^\/+/, '')
     .replaceAll('/', sep);
@@ -59,7 +62,7 @@ await new Promise((resolveListening) => server.once('listening', resolveListenin
 
 try {
   const { port } = server.address();
-  const assets = new Set(pagePaths.map((page) => `${base}${page.replace(/^\//, '')}`));
+  const assets = new Set([...pagePaths, ...publicRoutes].map((page) => `${base}${page.replace(/^\//, '')}`));
 
   for (const page of assets) {
     if (expectedContentType(page) !== 'text/html') continue;

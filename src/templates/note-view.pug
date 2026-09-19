@@ -1,0 +1,18 @@
+- var title = '6.am Note'
+- var description = 'A temporary encrypted note from 6.am.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.note-shell
+      include _header.pug
+      main.note-main.note-view-main
+        p.eyebrow 6.AM / NOTE
+        h1.note-title#note-view-title Encrypted note
+        p.note-intro#note-view-copy This note is encrypted. Reveal it only when you are ready to read it.
+        section.note-card.note-reveal
+          button.primary-button#reveal-note(type="button") Reveal note
+          pre#revealed-note.revealed-note(hidden)
+          p.feedback#reveal-feedback(role="status", aria-live="polite")
+      include _footer.pug
+    script(type="module", src="/src/scripts/note-view.js")

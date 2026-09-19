@@ -1,0 +1,105 @@
+- var title = '6.am QR — generate and scan barcodes'
+- var description = 'Generate, export and scan QR codes and practical barcode formats locally in your browser.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.qr-shell
+      include _header.pug
+      main.qr-main
+        p.eyebrow 6.AM / QR
+        h1.qr-title Generate QR simply.
+        p.qr-intro Generate and read practical QR and barcode formats. 
+        .qr-tabs(role="tablist" aria-label="QR tools")
+          button.qr-tab#generate-tab(type="button" role="tab" aria-selected="true" aria-controls="generate-panel") Generate
+          button.qr-tab#reader-tab(type="button" role="tab" aria-selected="false" aria-controls="reader-panel" tabindex="-1") Reader
+        section.qr-panel#generate-panel(role="tabpanel" aria-labelledby="generate-tab")
+          form.qr-grid#generator-form
+            .qr-editor
+              label.note-label(for="qr-content") Content
+              textarea.qr-text#qr-content(name="content" maxlength="8192" required placeholder="Text, link, contact details…")
+              .qr-settings
+                label.qr-field
+                  span Format
+                  select#qr-format(name="format")
+                    option(value="QRCode" selected) QR Code
+                    option(value="DataMatrix") Data Matrix
+                    option(value="Aztec") Aztec
+                    option(value="PDF417") PDF417
+                    option(value="Code128") Code 128
+                    option(value="Code39") Code 39
+                    option(value="EAN8") EAN-8
+                    option(value="EAN13") EAN-13
+                    option(value="UPCA") UPC-A
+                    option(value="ITF") ITF
+                label.qr-field
+                  span Size, px
+                  input#qr-size(name="size" type="number" min="128" max="4096" step="1" value="512" inputmode="numeric")
+                label.qr-field
+                  span Error correction
+                  select#qr-error-level(name="errorLevel")
+                    option(value="L") L — low
+                    option(value="M" selected) M — medium
+                    option(value="Q") Q — quartile
+                    option(value="H") H — high
+                label.qr-field
+                  span QR version
+                  select#qr-version(name="version")
+                    option(value="") Auto
+                    - for (let version = 1; version <= 40; version++)
+                      option(value=version)= version
+                label.qr-field
+                  span QR mask
+                  select#qr-mask(name="mask")
+                    option(value="") Auto
+                    - for (let mask = 0; mask <= 7; mask++)
+                      option(value=mask)= mask
+                label.qr-field
+                  span Quiet zone
+                  select#qr-quiet-zone(name="quietZone")
+                    option(value="true" selected) Include
+                    option(value="false") None
+                label.qr-field
+                  span Dark modules
+                  input#qr-dark(name="dark" type="color" value="#08090b")
+                label.qr-field
+                  span Light modules
+                  input#qr-light(name="light" type="color" value="#ffffff")
+              p.settings-note#format-note QR-specific settings are disabled for the selected barcode format.
+              button.primary-button(type="submit") Generate code
+              p.feedback#generator-feedback(role="status" aria-live="polite")
+            .qr-preview-wrap
+              .qr-preview#qr-preview(aria-label="Generated barcode preview")
+                p.qr-placeholder Your generated code will appear here.
+              .qr-actions#qr-actions(hidden)
+                button.text-button#download-svg(type="button") Download SVG
+                button.text-button#download-png(type="button") Download PNG
+                button.text-button#copy-svg(type="button") Copy SVG
+                button.text-button#copy-image(type="button") Copy image
+        section.qr-panel#reader-panel(role="tabpanel" aria-labelledby="reader-tab" hidden)
+          .reader-grid
+            .reader-controls
+              label.note-label(for="reader-file") Scan a photo
+              input.reader-file#reader-file(type="file" accept="image/*")
+              button.primary-button#scan-file(type="button") Scan selected photo
+              p.settings-note An uploaded image is processed locally and is not saved.
+              hr.qr-rule
+              label.note-label(for="camera-select") Or use a camera
+              select#camera-select(aria-label="Camera")
+                option(value="") Default camera
+              .qr-actions
+                button.text-button#start-camera(type="button") Start camera
+                button.text-button#stop-camera(type="button" disabled) Stop camera
+              p.feedback#reader-feedback(role="status" aria-live="polite")
+            .reader-preview
+              video#camera-video(playsinline muted hidden)
+              p.qr-placeholder#camera-placeholder Camera is off. Start it only when you are ready to scan.
+            article.reader-result#reader-result(hidden)
+              p.eyebrow Result
+              h2#reader-format
+              pre#reader-text
+              .qr-actions
+                button.text-button#copy-result(type="button") Copy result
+                a.text-button#open-result(target="_blank" rel="noreferrer" hidden) Open link ↗
+      include _footer.pug
+    script(type="module", src="/src/scripts/qr.js")

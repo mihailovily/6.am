@@ -1,0 +1,31 @@
+- var title = '6.am Note — short link admin'
+- var description = 'Create an expiring short link.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.note-shell
+      include _header.pug
+      main.note-main
+        p.eyebrow 6.AM / NOTE / ADMIN
+        h1.note-title Create a short link.
+        p.note-intro This page is intended for the 6.am owner and is protected by Cloudflare Access in production.
+        form.note-card#link-form
+          label.note-label(for="target-url") Destination URL
+          input#target-url.note-input(type="url", name="url", required, placeholder="https://example.com/article")
+          fieldset.note-fieldset
+            legend.note-label Lifetime
+            .choice-row
+              label.choice
+                input(type="radio", name="ttl", value="24", checked)
+                span 24 hours
+              label.choice
+                input(type="radio", name="ttl", value="72")
+                span 3 days
+              label.choice
+                input(type="radio", name="ttl", value="168")
+                span 7 days
+          button.primary-button(type="submit") Create short link
+          p.feedback#link-feedback(role="status", aria-live="polite")
+      include _footer.pug
+    script(type="module", src="/src/scripts/note-admin.js")

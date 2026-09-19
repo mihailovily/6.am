@@ -11,15 +11,33 @@ html(lang="en", class="dark")
         h1.home-title Less noise.<br><span>More focus.</span>
         p.home-intro A set of tools for productive work.
         nav.service-list(aria-label="6.am services")
-          a.service-card.service-card-active(href=base + "time.html")
+          a.service-card.service-card-active(href=base + "time")
             span.service-index 01
             span.service-copy
               strong Time
               small Clock · stopwatch · Pomodoro
             span.service-arrow(aria-hidden="true") ↗
-          each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}, {name: 'Rituals', description: 'A place for repeatable practices'}]
+          a.service-card.service-card-active(href=base + "note")
+            span.service-index 02
+            span.service-copy
+              strong Note
+              small Encrypted temporary notes · short links
+            span.service-arrow(aria-hidden="true") ↗
+          a.service-card.service-card-active(href=base + "qr")
+            span.service-index 03
+            span.service-copy
+              strong QR
+              small Generate · scan · export
+            span.service-arrow(aria-hidden="true") ↗
+          a.service-card.service-card-active(href=base + "life")
+            span.service-index 04
+            span.service-copy
+              strong Life
+              small Life · year · goal wallpapers
+            span.service-arrow(aria-hidden="true") ↗
+          each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}]
             article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
-              span.service-index= `0${index + 2}`
+              span.service-index= `0${index + 5}`
               span.service-copy
                 strong= item.name
                 small= item.description
