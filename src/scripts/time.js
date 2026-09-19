@@ -274,10 +274,32 @@ document.addEventListener('fullscreenchange', () => {
   syncFullscreenControls();
 });
 
+/** @param {EventTarget | null} target */
+function isInteractiveTarget(target) {
+  return target instanceof Element && Boolean(target.closest('button, a, input, select, textarea, [contenteditable]:not([contenteditable="false"])'));
+}
+
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && fallbackPresentation) {
     event.preventDefault();
     void exitFullscreen();
+  }
+
+  if (
+    event.code === 'Space'
+    && state.view === 'stopwatch'
+    && window.matchMedia('(min-width: 761px)').matches
+    && !event.defaultPrevented
+    && !event.repeat
+    && !event.isComposing
+    && !event.altKey
+    && !event.ctrlKey
+    && !event.metaKey
+    && !event.shiftKey
+    && !isInteractiveTarget(event.target)
+  ) {
+    event.preventDefault();
+    /** @type {HTMLButtonElement} */ ($('#stopwatch-toggle')).click();
   }
 });
 
