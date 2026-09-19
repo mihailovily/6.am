@@ -1,6 +1,7 @@
 import { codeFor, expiryAt, validDestination, validLifetime } from './domain.js';
 import { verifyAccessIdentity } from './auth.js';
 import { assetPathFor } from './page-routes.js';
+import { lifeWallpaper } from './life-api.js';
 
 interface D1Result<T> { results?: T[]; }
 interface D1Statement { bind(...values: unknown[]): D1Statement; first<T>(): Promise<T | null>; run(): Promise<unknown>; }
@@ -132,6 +133,7 @@ export default {
       const revealMatch = pathname.match(/^\/api\/v1\/notes\/([a-z0-9]+)\/reveal$/);
       if (request.method === 'POST' && revealMatch) return await revealNote(request, env, revealMatch[1]);
       if (request.method === 'POST' && pathname === '/api/v1/admin/links') return await createLink(request, env);
+      if ((request.method === 'GET' || request.method === 'HEAD') && pathname === '/api/v1/life/wallpaper.png') return await lifeWallpaper(request, env);
       const shortMatch = pathname.match(/^\/shrt\/([a-z0-9]+)$/);
       if (request.method === 'GET' && shortMatch) return await resolveShort(request, env, shortMatch[1]);
       if (request.method === 'GET') return await routeAsset(request, env);

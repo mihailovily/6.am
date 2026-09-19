@@ -1,0 +1,119 @@
+- var title = '6.am — Life calendar wallpapers'
+- var description = 'Minimal daily wallpapers that make life, year and goal progress visible.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.life-shell
+      header.site-header.life-header
+        a.wordmark(href=base, aria-label="6.am — home")
+          span 6
+            span.wordmark-dot .
+            | am
+        span.section-code LIFE / 04
+      main.life-main
+        section.life-hero
+          p.eyebrow 6.AM / LIFE
+          h1.life-title See the time you have.
+          p.life-intro Turn life, year, or goal progress into a quiet lock-screen ritual that refreshes every day.
+        .life-tabs(role="tablist", aria-label="Calendar type")
+          button.life-tab#life-tab(type="button", role="tab", aria-selected="true", aria-controls="life-workspace", data-calendar="life") Life
+          button.life-tab#year-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-calendar="year") Year
+          button.life-tab#goal-tab(type="button", role="tab", aria-selected="false", aria-controls="life-workspace", tabindex="-1", data-calendar="goal") Goal
+        section.life-workspace#life-workspace(role="tabpanel", aria-labelledby="life-tab")
+          form.life-controls#life-form(novalidate)
+            .life-control-section#year-layout-section(hidden)
+              p.life-label Layout
+              .life-segmented(role="group", aria-label="Year layout")
+                button.is-selected(type="button", data-layout="days", aria-pressed="true") Days
+                button(type="button", data-layout="months", aria-pressed="false") Months
+                button(type="button", data-layout="quarters", aria-pressed="false") Quarters
+            .life-control-section#birthday-section
+              label.life-field(for="life-birthday")
+                span Birthday
+                input#life-birthday(name="birthday", type="date", value="1990-01-01", required)
+            .life-control-section#goal-section(hidden)
+              label.life-field(for="goal-title")
+                span Goal title
+                input#goal-title(name="title", type="text", maxlength="80", value="Build something meaningful", required)
+              .life-field-row
+                label.life-field(for="goal-start")
+                  span Start date
+                  input#goal-start(name="start", type="date", required)
+                label.life-field(for="goal-deadline")
+                  span Deadline
+                  input#goal-deadline(name="deadline", type="date", required)
+            .life-control-section
+              label.life-field(for="device-model")
+                span Device
+                select#device-model(name="device")
+                  optgroup(label="Apple iPhone")
+                    option(value="1170x2532") iPhone 13 / 13 Pro / 14
+                    option(value="1284x2778") iPhone 13 Pro Max / 14 Plus
+                    option(value="1179x2556", selected) iPhone 14 Pro / 15 / 15 Pro / 16
+                    option(value="1290x2796") iPhone 14 Pro Max / 15 Plus / 15 Pro Max / 16 Plus
+                    option(value="1206x2622") iPhone 16 Pro / 17 / 17 Pro
+                    option(value="1320x2868") iPhone 16 Pro Max / 17 Pro Max
+                  optgroup(label="Google Pixel")
+                    option(value="1080x2400") Pixel 7 / 8
+                    option(value="1440x3120") Pixel 7 Pro
+                    option(value="1344x2992") Pixel 8 Pro / 9 Pro XL / 10 Pro XL
+                    option(value="1080x2424") Pixel 9 / 9 Pro / 10 / 10 Pro
+                  optgroup(label="Samsung Galaxy")
+                    option(value="1080x2340") Galaxy S23–S26 / A54–A56
+                    option(value="1440x3088") Galaxy S23 Ultra
+                    option(value="1440x3120") Galaxy S24–S26 Ultra
+                  option(value="custom") Custom resolution…
+              .life-field-row#custom-size(hidden)
+                label.life-field(for="custom-width")
+                  span Width, px
+                  input#custom-width(type="number", min="320", max="2160", step="1", value="1080", inputmode="numeric")
+                label.life-field(for="custom-height")
+                  span Height, px
+                  input#custom-height(type="number", min="568", max="4320", step="1", value="2400", inputmode="numeric")
+              label.life-field(for="life-timezone")
+                span Time zone
+                input#life-timezone(name="tz", type="text", value="UTC", required, spellcheck="false")
+              p.settings-note Used to choose the current day when the wallpaper is requested.
+            p.feedback.error#life-error(role="alert", aria-live="polite")
+            .life-actions
+              button.primary-button#copy-wallpaper(type="button") Copy wallpaper URL
+              button.text-button#download-wallpaper(type="button") Download PNG
+              button.text-button#open-install(type="button") Installation guide
+            p.life-privacy Dates and goal titles are included in the generated URL. Anyone with that URL can read them. 6.am does not save the configuration.
+          aside.life-preview-column(aria-label="Wallpaper preview")
+            .phone-frame
+              .phone-speaker(aria-hidden="true")
+              img#wallpaper-preview(alt="Generated Life wallpaper preview")
+              .preview-loading#preview-loading(role="status") Rendering preview…
+            .life-url-wrap
+              span Generated endpoint
+              output#wallpaper-url
+            p.feedback#life-feedback(role="status", aria-live="polite")
+      include _footer.pug
+
+    dialog.install-dialog#install-dialog(aria-labelledby="install-title")
+      .install-dialog-card
+        .install-dialog-header
+          div
+            p.eyebrow SETUP / DAILY
+            h2#install-title Choose your device
+          button.install-close#install-close(type="button", aria-label="Close installation guide") ×
+        section#platform-choice
+          p.install-intro Use the generated URL in a daily automation. Your phone fetches a fresh wallpaper without an account.
+          .platform-grid
+            button.platform-card(type="button", data-platform="ios")
+              strong iPhone
+              span iOS Shortcuts
+            button.platform-card(type="button", data-platform="android")
+              strong Android
+              span MacroDroid
+        section#install-steps(hidden)
+          button.text-button#install-back(type="button") ← Back
+          h3#steps-heading
+          ol.install-step-list#steps-list
+          .install-url
+            output#install-url
+            button.text-button#copy-install-url(type="button") Copy URL
+          p.feedback#install-feedback(role="status", aria-live="polite")
+    script(type="module", src="/src/scripts/life.js")

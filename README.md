@@ -15,6 +15,7 @@ Open-source tools for productive work. A calm space for keeping time, finding fo
 | --- | --- | --- |
 | **Time** | Clock, stopwatch, and customizable Pomodoro | Available |
 | **QR** | Local QR/barcode generation, export, and scanning | Available |
+| **Life** | Daily life, year, and goal calendar wallpapers | Available |
 | **Tasks** | The next module in the ecosystem | Coming soon |
 | **Note** | Encrypted temporary notes and expiring short links | Available |
 | **Rituals** | A place for repeatable practices | Coming soon |
@@ -57,6 +58,7 @@ You can also open a specific view directly:
 | Pomodoro | `/time#pomodoro` |
 | Settings | `/time#settings` |
 | QR generator and reader | `/qr` |
+| Life wallpaper generator | `/life` |
 | Note | `/note` |
 | Note owner | `/note-admin` |
 
@@ -97,9 +99,9 @@ npm run build
 npm run preview
 ```
 
-Publish the contents of **`dist/`** to a static host. No application server or database is needed for the static pages. Configure the host to rewrite `/time`, `/qr`, `/note`, `/note-admin`, and `/note-view` to their matching `.html` files without redirecting; the legacy `.html` paths remain available.
+Publish the contents of **`dist/`** to a static host. No application server or database is needed for the static pages. Configure the host to rewrite `/time`, `/life`, `/qr`, `/note`, `/note-admin`, and `/note-view` to their matching `.html` files without redirecting; the legacy `.html` paths remain available.
 
-The Note service extends this static site with a Cloudflare Worker and D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect both `/note-admin` and `/note-admin.html`, plus `/api/v1/admin/*`, in the dashboard.
+Life and Note extend this static site with a Cloudflare Worker. Life renders stateless PNG wallpapers at `/api/v1/life/wallpaper.png`; Note uses D1. Configure the real `database_id` in `wrangler.jsonc`, run `npx wrangler d1 migrations apply 6-am --remote`, and set `TURNSTILE_SECRET_KEY`, `ACCESS_TEAM_DOMAIN`, and `ACCESS_AUD` as Worker secrets. The public Turnstile site key is supplied at build time as `VITE_TURNSTILE_SITE_KEY`. Cloudflare Access must protect both `/note-admin` and `/note-admin.html`, plus `/api/v1/admin/*`, in the dashboard.
 
 For a deployment under a subdirectory, set its base path at build time:
 

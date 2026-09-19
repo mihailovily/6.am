@@ -29,9 +29,15 @@ html(lang="en", class="dark")
               strong QR
               small Generate · scan · export
             span.service-arrow(aria-hidden="true") ↗
+          a.service-card.service-card-active(href=base + "life")
+            span.service-index 04
+            span.service-copy
+              strong Life
+              small Life · year · goal wallpapers
+            span.service-arrow(aria-hidden="true") ↗
           each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}, {name: 'Rituals', description: 'A place for repeatable practices'}]
             article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
-              span.service-index= `0${index + 4}`
+              span.service-index= `0${index + 5}`
               span.service-copy
                 strong= item.name
                 small= item.description

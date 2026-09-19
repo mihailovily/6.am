@@ -1,0 +1,146 @@
+.life-shell { max-width: 1540px; }
+.life-header .section-code { margin-left: auto; }
+.life-main { padding: clamp(56px, 8vw, 110px) 0 80px; }
+.life-hero { max-width: 820px; }
+.life-title {
+  margin: 18px 0;
+  color: var(--body-text);
+  font-size: clamp(3.2rem, 7vw, 6.8rem);
+  font-weight: 500;
+  line-height: .98;
+  letter-spacing: -.075em;
+}
+.life-intro { max-width: 620px; margin: 0; color: var(--muted-foreground); font-size: 1.05rem; }
+
+.life-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: min(100%, 520px);
+  margin: 54px 0 24px;
+  padding: 4px;
+  border: 1px solid var(--border-active);
+  border-radius: 999px;
+  background: var(--panel);
+}
+.life-tab {
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.life-tab:hover { color: var(--foreground); }
+.life-tab[aria-selected="true"] { background: var(--surface-selected); color: var(--foreground); }
+
+.life-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, .88fr) minmax(360px, 1.12fr);
+  gap: clamp(36px, 6vw, 92px);
+  padding: clamp(28px, 5vw, 64px);
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgb(17 20 23 / 82%), rgb(9 11 13 / 94%));
+}
+.life-controls { min-width: 0; }
+.life-control-section { padding: 0 0 28px; margin: 0 0 28px; border-bottom: 1px solid var(--border); }
+.life-label,
+.life-field > span,
+.life-url-wrap > span {
+  display: block;
+  margin: 0 0 9px;
+  color: var(--body-text-subtle);
+  font: .72rem Consolas, monospace;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.life-field { display: block; flex: 1 1 0; min-width: 0; }
+.life-field + .life-field { margin-top: 18px; }
+.life-field-row { display: flex; gap: 14px; margin-top: 18px; }
+.life-field-row .life-field + .life-field { margin-top: 0; }
+.life-field input,
+.life-field select {
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 13px;
+  border: 1px solid var(--border-interactive);
+  border-radius: 3px;
+  background: var(--surface-input);
+  color: var(--body-text);
+}
+.life-field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%), linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%); background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px; background-repeat: no-repeat; background-size: 5px 5px; }
+.life-field option,
+.life-field optgroup { background: var(--panel-alt); color: var(--foreground); }
+.life-segmented { display: flex; gap: 4px; }
+.life-segmented button { flex: 1; min-height: 42px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--muted-foreground); }
+.life-segmented button:hover,
+.life-segmented button.is-selected { border-color: var(--border-selected); background: var(--surface-button); color: var(--foreground); }
+.life-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.life-actions .primary-button { flex: 1 1 210px; }
+.life-actions .text-button { flex: 1 1 140px; }
+.life-privacy { margin: 20px 0 0; color: var(--body-text-disabled); font-size: .75rem; line-height: 1.6; }
+
+.life-preview-column { display: flex; min-width: 0; flex-direction: column; align-items: center; }
+.phone-frame {
+  position: relative;
+  width: min(100%, 390px);
+  aspect-ratio: 1179 / 2556;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 34px;
+  background: var(--life-device);
+  box-shadow: 0 40px 90px rgb(0 0 0 / 38%);
+}
+.phone-frame img { display: block; width: 100%; height: 100%; border-radius: 27px; background: var(--life-wallpaper); object-fit: cover; }
+.phone-speaker { position: absolute; z-index: 2; top: 18px; left: 50%; width: 26%; height: 18px; border-radius: 999px; background: var(--life-device-dark); transform: translateX(-50%); }
+.preview-loading { position: absolute; inset: 48% 0 auto; color: var(--body-text-subtle); font: .68rem Consolas, monospace; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+.life-url-wrap { width: min(100%, 560px); margin-top: 24px; }
+.life-url-wrap output,
+.install-url output { display: block; overflow-wrap: anywhere; color: var(--body-text-subtle); font: .7rem/1.6 Consolas, monospace; }
+.life-preview-column > .feedback { width: min(100%, 560px); }
+
+.install-dialog { width: min(760px, calc(100% - 32px)); max-height: min(88svh, 900px); padding: 0; border: 1px solid var(--border-strong); border-radius: 14px; background: var(--panel-alt); color: var(--foreground); }
+.install-dialog::backdrop { background: rgb(0 0 0 / 72%); backdrop-filter: blur(8px); }
+.install-dialog-card { padding: clamp(24px, 5vw, 48px); }
+.install-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.install-dialog h2 { margin: 8px 0 0; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 500; letter-spacing: -.05em; }
+.install-dialog h3 { margin: 24px 0; font-size: 1.5rem; font-weight: 500; }
+.install-close { width: 44px; height: 44px; border: 1px solid var(--border-interactive); border-radius: 50%; background: transparent; color: var(--muted-foreground); font-size: 1.5rem; }
+.install-intro { max-width: 560px; color: var(--muted-foreground); }
+.platform-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
+.platform-card { display: flex; min-height: 170px; flex-direction: column; align-items: flex-start; justify-content: flex-end; padding: 24px; border: 1px solid var(--border-interactive); border-radius: 7px; background: var(--panel); color: var(--foreground); text-align: left; }
+.platform-card:hover { border-color: var(--accent-muted); background: var(--surface-hover); }
+.platform-card strong { font-size: 1.5rem; font-weight: 500; }
+.platform-card span { color: var(--muted-foreground); }
+.install-step-list { display: grid; gap: 14px; margin: 0; padding-left: 26px; color: var(--body-text-soft); }
+.install-step-list li { padding-left: 8px; line-height: 1.6; }
+.install-url { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; margin-top: 28px; padding: 16px; border: 1px solid var(--border); background: var(--surface-input); }
+
+@media (max-width: 900px) {
+  .life-workspace { grid-template-columns: 1fr; }
+  .life-preview-column { grid-row: 1; }
+  .phone-frame { width: min(72vw, 340px); }
+}
+
+@media (max-width: 600px) {
+  .life-main { padding: 44px 0 32px; }
+  .life-title { font-size: clamp(3rem, 15vw, 4.5rem); }
+  .life-tabs { margin: 34px 0 16px; }
+  .life-workspace { gap: 34px; padding: 20px 16px 28px; }
+  .phone-frame { width: min(78vw, 320px); border-radius: 28px; }
+  .phone-frame img { border-radius: 22px; }
+  .life-field-row { flex-direction: column; }
+  .life-field-row .life-field + .life-field { margin-top: 0; }
+  .life-actions { flex-direction: column; }
+  .life-actions .primary-button,
+  .life-actions .text-button { width: 100%; flex-basis: auto; }
+  .platform-grid { grid-template-columns: 1fr 1fr; }
+  .platform-card { min-height: 130px; padding: 16px; }
+  .platform-card strong { font-size: 1.2rem; }
+  .install-url { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 380px) {
+  .life-workspace { padding-inline: 12px; }
+  .life-tab { min-height: 40px; }
+  .platform-grid { grid-template-columns: 1fr; }
+}

@@ -30,9 +30,11 @@ test('short links accept only http and https destinations', () => {
 test('worker maps every clean page URL to its built HTML asset', () => {
   assert.equal(assetPathFor('/'), '/index.html');
   assert.equal(assetPathFor('/time'), '/time.html');
+  assert.equal(assetPathFor('/life'), '/life.html');
   assert.equal(assetPathFor('/qr'), '/qr.html');
   assert.equal(assetPathFor('/note'), '/note.html');
   assert.equal(assetPathFor('/qr.html'), '/qr.html');
+  assert.equal(assetPathFor('/life.html'), '/life.html');
 });
 
 test('notes round-trip through AES-GCM and derive code-specific proofs', async () => {

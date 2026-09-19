@@ -1,6 +1,6 @@
 # 6.am — сборка и деплой
 
-6.am — multi-page сайт на Vite и JavaScript со статическими страницами и Cloudflare Worker. Time продолжает работать только в браузере; Note использует Worker и D1 для временных зашифрованных заметок и сокращённых URL.
+6.am — multi-page сайт на Vite и JavaScript со статическими страницами и Cloudflare Worker. Time продолжает работать только в браузере; Life использует Worker для stateless PNG-обоев, а Note — Worker и D1 для временных зашифрованных заметок и сокращённых URL.
 
 ## Требования
 
@@ -20,11 +20,14 @@ npm run dev
 
 - `/` — оглавление экосистемы;
 - `/time` — часы, секундомер и помодоро;
+- `/life` — генератор ежедневных Life, Year и Goal обоев;
 - `/note` — публичное создание временной зашифрованной заметки;
 - `/note-admin` — создание сокращённой ссылки для владельца через Cloudflare Access;
 - `/note-view` — страница расшифровки заметки;
 - `/shrt/{code}` — короткая ссылка или полученная заметка;
 - `/time#clock`, `/time#stopwatch`, `/time#pomodoro`, `/time#settings` — прямые ссылки на режимы.
+
+Life генерирует PNG через `GET /api/v1/life/wallpaper.png`. Параметры календаря находятся в query string и не сохраняются в D1; постоянную ссылку можно использовать в iOS Shortcuts или MacroDroid.
 
 Пути с `.html` также доступны без редиректа. Без hash `/time` после инициализации открывает раздел часов. Настройки формата часов, часового пояса, подписи и помодоро находятся в отдельном режиме `/time#settings`.
 
@@ -66,10 +69,12 @@ npm run preview
 src/pages/
   index.html            Vite entry point главной страницы
   time.html             Vite entry point приложения времени
+  life.html             Vite entry point Life
   note.html             Vite entry point Note
 src/templates/
   home.pug              шаблон главной страницы
   time.pug              шаблон приложения времени
+  life.pug              генератор обоев Life
   note*.pug             создание, раскрытие и admin-страницы Note
   _head.pug             общая head-секция
   _header.pug           общий header
@@ -82,13 +87,15 @@ src/styles/
   base.css              базовые правила и accessibility
   components.css        общие UI-компоненты и иконки
   pages/time.css        стили, специфичные для time.html
+  pages/life.css        стили Life
   pages/note.css        стили Note
 src/scripts/
   time.js               часы, секундомер и помодоро
   time-domain.js        чистая логика состояния и восстановления
+  life*.js              UI, расчёты календарей и SVG-модель Life
   note*.js              UI и Web Crypto для Note
 worker/
-  src/                  router, Access JWT adapter и short-code logic
+  src/                  router, Life PNG renderer, Access JWT adapter и short-code logic
   migrations/           D1 schema для resources и identity
 pages.config.js         единый реестр страниц, маршрутов и выходных имён
 ```
