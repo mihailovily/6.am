@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="heads-gold" x1="30" y1="10" x2="210" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#f4dfa1"/><stop offset=".28" stop-color="#b49a57"/><stop offset=".5" stop-color="#e7d391"/><stop offset=".78" stop-color="#87703c"/><stop offset="1" stop-color="#dec789"/></linearGradient>
+    <linearGradient id="heads-silver" x1="55" y1="35" x2="180" y2="210" gradientUnits="userSpaceOnUse"><stop stop-color="#e7e7df"/><stop offset=".45" stop-color="#acb1ac"/><stop offset=".72" stop-color="#d9dcd3"/><stop offset="1" stop-color="#7f8886"/></linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="117" fill="url(#heads-gold)" stroke="#ead8a2" stroke-width="2"/>
+  <circle cx="120" cy="120" r="111" stroke="#68552e" stroke-dasharray="1 3" stroke-width="3" opacity=".55"/>
+  <circle cx="120" cy="120" r="86" fill="url(#heads-silver)" stroke="#786b48" stroke-width="2"/>
+  <circle cx="120" cy="120" r="81" stroke="#f3f0da" opacity=".5"/>
+  <g fill="#65542f" font-family="Arial, sans-serif" font-size="11" text-anchor="middle">
+    <text x="120" y="23">★</text><text x="170" y="37">★</text><text x="206" y="74">★</text><text x="219" y="124">★</text><text x="206" y="174">★</text><text x="170" y="210">★</text><text x="120" y="223">★</text><text x="70" y="210">★</text><text x="34" y="174">★</text><text x="21" y="124">★</text><text x="34" y="74">★</text><text x="70" y="37">★</text>
+  </g>
+  <g stroke="#59615d" stroke-width="2" stroke-linejoin="round">
+    <path d="M116 85 L108 75 L121 69 L132 75 L139 76 L135 83 L126 83 L126 97 C138 104 147 95 157 83 L175 72 L169 97 L151 123 L137 132 L134 144 L153 160 L148 166 L129 155 L133 175 L120 167 L107 175 L111 155 L92 166 L87 160 L106 144 L103 132 L89 123 L71 97 L65 72 L83 83 C93 95 102 104 114 97 Z" fill="#818982"/>
+    <path d="M111 114 L83 96 M107 124 L81 109 M129 114 L157 96 M133 124 L159 109 M114 103 L114 140 L120 151 L126 140 L126 103" stroke="#dce0d5"/>
+  </g>
+  <text x="120" y="192" text-anchor="middle" fill="#59615d" font-family="Arial, sans-serif" font-size="9" letter-spacing="4">EURO</text>
+</svg>

@@ -1,0 +1,37 @@
+.coinflip-main { width: 100%; max-width: 680px; margin: 0 auto; padding: 48px 0 64px; flex: 1; text-align: center; }
+.coinflip-heading .eyebrow { margin: 0 0 16px; font-size: .65rem; }
+.coinflip-heading h1 { margin: 0; font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 500; letter-spacing: -.065em; line-height: 1.1; }
+.coinflip-heading > p:last-child { margin: 12px 0 0; color: var(--muted-foreground); font-size: .9rem; }
+.coinflip-stage { position: relative; display: grid; place-items: center; height: 350px; padding-top: 35px; perspective: 1000px; }
+.coinflip-coin { width: clamp(172px, 25vw, 220px); aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; background: transparent; touch-action: none; user-select: none; -webkit-user-select: none; }
+.coinflip-coin:disabled { opacity: 1; cursor: default; }
+.coinflip-body { display: block; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+.coinflip-face { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; background: var(--coin-gold); box-shadow: 0 3px 0 var(--coin-edge-dark), 0 5px 0 var(--coin-edge-light); }
+.coinflip-face svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+.coinflip-heads { transform: translateZ(2px); }
+.coinflip-tails { transform: rotateX(180deg) translateZ(2px); }
+.coinflip-shadow { position: absolute; bottom: 20px; width: 145px; height: 18px; border-radius: 50%; background: var(--coin-shadow); filter: blur(9px); opacity: .65; }
+.coinflip-result { min-height: 34px; margin: 12px 0 4px; color: var(--body-text); font-size: 1.4rem; letter-spacing: -.035em; }
+.coinflip-hint { margin: 0 0 24px; color: var(--muted-foreground); font-size: .8rem; }
+.coinflip-controls .primary-button { min-width: 180px; min-height: 48px; border-radius: 999px; }
+.coinflip-error { max-width: 360px; margin: 16px auto 0; color: var(--error); font-size: .85rem; }
+.coinflip-session { max-width: 400px; margin: 48px auto 0; text-align: left; }
+.coinflip-stats { display: flex; align-items: center; gap: 24px; padding: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.coinflip-stats dl { display: grid; grid-template-columns: repeat(3, 1fr); flex: 1; gap: 24px; margin: 0; }
+.coinflip-stats dt { color: var(--muted-foreground); font-size: .7rem; }
+.coinflip-stats dd { margin: 6px 0 0; font: 1.15rem Consolas, monospace; font-variant-numeric: tabular-nums; }
+.coinflip-stats .text-button { min-height: 44px; padding: 8px; font-size: .75rem; }
+.coinflip-history summary { padding: 18px 0; color: var(--muted-foreground); font-size: .8rem; cursor: pointer; }
+.coinflip-history summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.coinflip-history ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.coinflip-history li { display: flex; justify-content: space-between; padding: 10px 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--body-text-secondary); font-size: .7rem; }
+.coinflip-history li span { color: var(--muted-foreground); font-family: Consolas, monospace; }
+.coinflip-history p { color: var(--muted-foreground); font-size: .75rem; }
+.coinflip-history .coinflip-history-note { margin-top: 18px; font-size: .65rem; }
+@media (width <= 600px) {
+  .coinflip-shell .site-header { min-height: 80px; }
+  .coinflip-main { padding: 32px 0 40px; }
+  .coinflip-stage { height: 290px; padding-top: 35px; }
+  .coinflip-session { margin-top: 32px; }
+  .coinflip-history ol { grid-template-columns: repeat(3, 1fr); }
+}

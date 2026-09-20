@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 
 export const pages = {
+  coinflip: { source: 'src/pages/coinflip.html', output: 'coinflip.html', routes: ['/coinflip', '/coinflip.html'] },
   home: { source: 'src/pages/index.html', output: 'index.html', routes: ['/', '/index.html'] },
   qr: { source: 'src/pages/qr.html', output: 'qr.html', routes: ['/qr', '/qr.html'] },
   time: { source: 'src/pages/time.html', output: 'time.html', routes: ['/time', '/time.html'] },

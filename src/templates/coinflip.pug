@@ -1,0 +1,53 @@
+- var title = '6.am — Coinflip'
+- var description = 'Flip a euro. A quiet coin toss with secure randomness and a session history.'
+
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.coinflip-shell
+      header.site-header
+        a.wordmark(href=base, aria-label="6.am — home")
+          span 6
+            span.wordmark-dot .
+            | am
+        span.section-code COINFLIP / 05
+      main.coinflip-main
+        .coinflip-heading
+          p.eyebrow A LITTLE ROOM FOR CHANCE
+          h1 Coinflip
+          p Leave it to a euro.
+        .coinflip-stage
+          .coinflip-shadow(aria-hidden="true")
+          button.coinflip-coin#coin(type="button", aria-label="Flip a euro coin", aria-describedby="coin-hint", disabled)
+            span.coinflip-body#coin-body(aria-hidden="true")
+              span.coinflip-face.coinflip-heads
+                include _coin-heads.svg
+              span.coinflip-face.coinflip-tails
+                include _coin-tails.svg
+        .coinflip-controls
+          p.coinflip-result#coin-result(role="status", aria-live="polite", aria-atomic="true") Your call, chance.
+          p.coinflip-hint#coin-hint Swipe up or tap to flip
+          button.primary-button#flip-coin(type="button", disabled) Flip coin
+          p.coinflip-error#coin-error(role="alert", hidden)
+          noscript Enable JavaScript to flip the coin.
+        section.coinflip-session(aria-label="Session statistics")
+          .coinflip-stats
+            dl
+              div
+                dt Heads
+                dd#heads-count 0
+              div
+                dt Tails
+                dd#tails-count 0
+              div
+                dt Total
+                dd#total-count 0
+            button.text-button#reset-coin(type="button", disabled) Reset
+          details.coinflip-history
+            summary History
+            p#coin-empty Your next decision starts here.
+            ol#coin-history(aria-label="Last 20 flips", hidden)
+            p.coinflip-history-note Last 20 flips · this session only
+      include _footer.pug
+    script(type="module", src="/src/scripts/coinflip.js")
