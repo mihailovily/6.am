@@ -41,9 +41,15 @@ html(lang="en", class="dark")
               strong Coinflip
               small Flip a euro · leave it to chance
             span.service-arrow(aria-hidden="true") ↗
+          a.service-card.service-card-active(href=base + "badge")
+            span.service-index 06
+            span.service-copy
+              strong Badge
+              small Your introduction · on display
+            span.service-arrow(aria-hidden="true") ↗
           each item, index in [{name: 'Tasks', description: 'The next module in the ecosystem'}]
             article.service-card.service-card-soon(aria-label=item.name + ': coming soon')
-              span.service-index= `0${index + 6}`
+              span.service-index= `0${index + 7}`
               span.service-copy
                 strong= item.name
                 small= item.description

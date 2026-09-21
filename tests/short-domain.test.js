@@ -30,6 +30,8 @@ test('short links accept only http and https destinations', () => {
 
 test('worker maps every clean page URL to its built HTML asset', () => {
   assert.equal(assetPathFor('/'), '/index.html');
+  assert.equal(assetPathFor('/badge'), '/badge.html');
+  assert.equal(assetPathFor('/badge.html'), '/badge.html');
   assert.equal(assetPathFor('/coinflip'), '/coinflip.html');
   assert.equal(assetPathFor('/coinflip.html'), '/coinflip.html');
   assert.equal(assetPathFor('/time'), '/time.html');
