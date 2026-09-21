@@ -1,5 +1,5 @@
 - var title = '6.am — Time'
-- var description = '6.am — clock, stopwatch, and customizable Pomodoro timer.'
+- var description = '6.am — clock, stopwatch, Pomodoro timer, ambient soundscapes, and lofi radio.'
 mixin settingsIcon
   svg(viewBox="0 0 24 24")
     path(d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z")
@@ -42,6 +42,12 @@ html(lang="en", class="dark")
             span.tab-icon(aria-hidden="true")
               +settingsIcon
             span.mode-label Settings
+          a#tab-sounds.mode-tab(href="#sounds", role="tab", aria-controls="panel-sounds", tabindex="-1", data-view="sounds")
+            span.tab-icon(aria-hidden="true")
+              svg(viewBox="0 0 24 24")
+                path(d="M4 14c2-4 4-4 6 0s4 4 6 0 4-4 4 0M4 9c2-4 4-4 6 0s4 4 6 0 4-4 4 0")
+            span.mode-label Sounds
+            span.tab-dot(data-running="sounds", hidden)
         span.section-code#section-code TIME / 01
       main.time-main
 
@@ -103,6 +109,56 @@ html(lang="en", class="dark")
                     th Lap time
                     th Total
                 tbody#laps-body
+        section#panel-sounds.view-panel(data-panel="sounds", role="tabpanel", aria-labelledby="tab-sounds", tabindex="0", hidden)
+          section.soundscape-panel(aria-label="Ambient soundscapes")
+            .soundscape-hero
+              div
+                p.soundscape-kicker SOUND / 05
+                h1 Build a room for focus.
+                p Layer ambient scenes, add an endless lofi radio, then return to Pomodoro. Your mix keeps playing.
+              label.sound-search
+                span.visually-hidden Search sounds
+                svg(viewBox="0 0 24 24", aria-hidden="true")
+                  circle(cx="11", cy="11", r="7")
+                  path(d="m20 20-4-4")
+                input#sound-search(type="search", placeholder="Search sounds, places, moods…", autocomplete="off")
+            .soundscape-toolbar
+              label.soundscape-range
+                span Master volume
+                  output#master-volume-value(for="master-volume") 65%
+                input#master-volume(type="range", min="0", max="100", step="1", value="65")
+              label.soundscape-range
+                span Fade
+                  output#fade-value(for="fade-seconds") 2s
+                input#fade-seconds(type="range", min="0", max="30", step="1", value="2")
+            p#sound-status.sound-status(role="status", aria-live="polite")
+            #sound-grid.sound-groups
+            p#sound-empty.sound-empty(hidden) No sounds match that search. Try a place, mood, or category.
+            section.lofi-card(aria-labelledby="lofi-now")
+              .lofi-art(aria-hidden="true")
+                span 6
+                i
+              .lofi-copy
+                p.soundscape-kicker ENDLESS RADIO
+                h2#lofi-now Chillhop & Cozy Beats
+                p#lofi-source 8 CC0 tracks · endless shuffle
+                .lofi-modes(role="radiogroup", aria-label="Radio source")
+                  label
+                    input(type="radio", name="lofi-mode", value="local", checked)
+                    span Local CC0
+                  label
+                    input(type="radio", name="lofi-mode", value="live")
+                    span Lofi Girl live
+                .lofi-actions
+                  button.primary-button#lofi-play(type="button") Play radio
+                  button.text-button#lofi-next(type="button") Next track
+                label.soundscape-range.lofi-volume
+                  span Radio volume
+                    output#lofi-volume-value(for="lofi-volume") 55%
+                  input#lofi-volume(type="range", min="0", max="100", step="1", value="55")
+                #youtube-live-wrap.youtube-live(hidden)
+                  #youtube-player
+                  button.text-button#lofi-fallback(type="button") Play local radio instead
         section#panel-settings.view-panel(data-panel="settings", role="tabpanel", aria-labelledby="tab-settings", tabindex="0", hidden)
           section.settings-panel.settings-view(aria-label="Settings")
             .settings-heading
@@ -173,5 +229,24 @@ html(lang="en", class="dark")
                 p.feedback#settings-feedback(role="status")
                 p.feedback.error#settings-error(role="alert")
             p.settings-note.background-note Settings are saved on this device. Time is recalculated when you return.
+      aside#sound-dock.sound-dock(hidden, aria-label="Soundscape player")
+        .sound-dock-copy
+          span.sound-dock-mark(aria-hidden="true") ≋
+          div
+            strong Soundscape
+            span#sound-dock-summary No sounds selected
+        .sound-dock-volume
+          label(for="dock-master-volume") Master
+          input#dock-master-volume(type="range", min="0", max="100", step="1", value="65")
+          output#dock-master-value(for="dock-master-volume") 65%
+        .sound-dock-actions
+          button.icon-button#sound-dock-toggle(type="button", aria-label="Pause soundscape") Ⅱ
+          button.icon-button#sound-dock-stop(type="button", aria-label="Stop and clear soundscape") ■
+      dialog#sound-info-dialog.sound-info-dialog
+        button.icon-button#sound-info-close(type="button", aria-label="Close sound information") ×
+        p.soundscape-kicker SOUND DETAILS
+        h2#sound-info-title Sound
+        p#sound-info-copy
+        a#sound-info-source(target="_blank", rel="noreferrer") Source
       include _footer.pug
     script(type="module", src="/src/scripts/time.js")

@@ -175,13 +175,13 @@ footer a:hover { color: var(--foreground); }
   footer { align-items: flex-start; min-height: 0; margin-top: 24px; padding: 20px 0 24px; border-top: 1px solid var(--border); }
 
   .time-header { gap: 8px; }
-  .time-header .mode-tabs { width: 160px; }
+  .time-header .mode-tabs { width: 178px; }
   .time-header .wordmark { font-size: 1.25rem; }
   .time-header .section-code { font-size: .625rem; letter-spacing: .1em; }
 
   .mode-tab {
     min-height: 40px;
-    padding: 8px;
+    padding: 5px;
   }
 
   .mode-tab .tab-icon { display: inline-flex; }

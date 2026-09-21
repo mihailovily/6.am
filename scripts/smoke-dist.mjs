@@ -3,6 +3,7 @@ import { access, readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 import { normalizeBase, pages } from '../pages.config.js';
+import { ambientSounds, lofiTracks } from '../src/scripts/sound-catalog.js';
 
 const root = resolve('dist');
 const baseArgument = process.argv.indexOf('--base');
@@ -14,7 +15,10 @@ const contentTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
   ['.js', 'text/javascript'],
+  ['.flac', 'audio/flac'],
+  ['.mp3', 'audio/mpeg'],
   ['.svg', 'image/svg+xml'],
+  ['.wav', 'audio/wav'],
   ['.woff2', 'font/woff2']
 ]);
 
@@ -62,7 +66,11 @@ await new Promise((resolveListening) => server.once('listening', resolveListenin
 
 try {
   const { port } = server.address();
-  const assets = new Set([...pagePaths, ...publicRoutes].map((page) => `${base}${page.replace(/^\//, '')}`));
+  const audioAssets = [
+    ...ambientSounds.map(({ file }) => `/sounds/ambient/${file}`),
+    ...lofiTracks.map(({ file }) => `/sounds/lofi/${file}`)
+  ];
+  const assets = new Set([...pagePaths, ...publicRoutes, ...audioAssets].map((page) => `${base}${page.replace(/^\//, '')}`));
 
   for (const page of assets) {
     if (expectedContentType(page) !== 'text/html') continue;
