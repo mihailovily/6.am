@@ -14,10 +14,11 @@ import {
   saveJson,
   validPomodoroSettings
 } from './time-domain.js';
+import './soundscape.js';
 
 /** @typedef {import('./time-domain.js').Settings} Settings */
 /** @typedef {import('./time-domain.js').Phase} Phase */
-/** @typedef {'clock' | 'stopwatch' | 'pomodoro' | 'settings'} View */
+/** @typedef {'clock' | 'stopwatch' | 'pomodoro' | 'settings' | 'sounds'} View */
 
 /** @template {Element} T @param {string} selector @returns {T} */
 function $(selector) {
@@ -29,7 +30,7 @@ function $(selector) {
 const pad = (/** @type {number} */ number) => String(number).padStart(2, '0');
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 const labels = /** @type {Record<Phase, string>} */ ({ focus: 'Focus', short: 'Short break', long: 'Long break' });
-const codes = /** @type {Record<View, string>} */ ({ clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03', settings: 'SET / 04' });
+const codes = /** @type {Record<View, string>} */ ({ clock: 'TIME / 01', stopwatch: 'MEASURE / 02', pomodoro: 'FOCUS / 03', settings: 'SET / 04', sounds: 'SOUND / 05' });
 const preferencesKey = '6am-preferences';
 const runtimeKey = '6am-runtime';
 
@@ -66,6 +67,7 @@ let lastClockSecond = -1;
 let lastClockRuleSecond = -1;
 let lastPomodoroSecond = -1;
 let fallbackPresentation = false;
+let soundscapeRunning = false;
 const resetIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/></svg>';
 const lapIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4m0 1c4-2 7 2 12 0v9c-5 2-8-2-12 0"/></svg>';
 
@@ -228,6 +230,7 @@ function renderTabs() {
   $('#section-code').textContent = codes[state.view];
   /** @type {HTMLElement} */ ($('[data-running="stopwatch"]')).hidden = state.stopwatch.startedAt === null;
   /** @type {HTMLElement} */ ($('[data-running="pomodoro"]')).hidden = state.pomodoro.deadline === null;
+  /** @type {HTMLElement} */ ($('[data-running="sounds"]')).hidden = !soundscapeRunning;
 }
 
 function syncFullscreenControls() {
@@ -272,6 +275,11 @@ document.querySelectorAll('[data-fullscreen]').forEach((element) => {
 document.addEventListener('fullscreenchange', () => {
   fallbackPresentation = false;
   syncFullscreenControls();
+});
+
+document.addEventListener('soundscapechange', (event) => {
+  soundscapeRunning = Boolean(/** @type {CustomEvent} */ (event).detail?.running);
+  renderTabs();
 });
 
 /** @param {EventTarget | null} target */

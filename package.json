@@ -14,6 +14,7 @@
     "dev:worker": "npm run build && npm run d1:migrate:local && wrangler dev --local",
     "d1:migrate:local": "wrangler d1 migrations apply 6-am --local",
     "build": "node build.mjs",
+    "icons:pwa": "node scripts/render-pwa-icons.mjs",
     "preview": "vite preview --configLoader runner",
     "smoke": "node scripts/smoke-dist.mjs",
     "test": "node --test",

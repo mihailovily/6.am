@@ -1,4 +1,5 @@
 import { readApiResponse } from './note-api.js';
+import { networkFailure } from './network-status.js';
 
 const form = /** @type {HTMLFormElement} */ (document.querySelector('#link-form'));
 const feedback = /** @type {HTMLParagraphElement} */ (document.querySelector('#link-feedback'));
@@ -16,6 +17,6 @@ form.addEventListener('submit', async (event) => {
     const link = `${window.location.origin}${import.meta.env.BASE_URL}shrt/${payload.code}`;
     await navigator.clipboard?.writeText(link);
     setFeedback(`Link copied: ${link}`);
-  } catch (error) { setFeedback(error instanceof Error ? error.message : 'Could not create this link.', true); }
+  } catch (error) { setFeedback(networkFailure(error instanceof Error ? error.message : 'Could not create this link.'), true); }
   finally { button.disabled = false; }
 });

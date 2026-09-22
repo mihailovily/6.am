@@ -3,7 +3,10 @@
 @import url('./base.css');
 @import url('./components.css');
 @import url('./pages/time.css');
+@import url('./pages/time-sounds.css');
 @import url('./pages/home.css');
 @import url('./pages/note.css');
 @import url('./pages/qr.css');
 @import url('./pages/life.css');
+@import url('./pages/badge.css');
+@import url('./pages/coinflip.css');

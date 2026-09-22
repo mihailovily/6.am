@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100svh;
+  min-height: 100dvh;
   max-width: 1440px;
   margin: auto;
   padding: 0 5.5%;
@@ -169,39 +170,57 @@ footer a:hover { color: var(--foreground); }
 .error { color: var(--error); }
 
 @media (max-width: 760px) {
-  .site-shell { padding: 0 20px; }
+  .site-shell {
+    padding: max(0px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(76px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  }
   .site-header { min-height: 72px; }
   .header-note { font-size: .75rem; }
   footer { align-items: flex-start; min-height: 0; margin-top: 24px; padding: 20px 0 24px; border-top: 1px solid var(--border); }
 
-  .time-header { gap: 8px; }
-  .time-header .mode-tabs { width: 160px; }
+  .time-header { grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
+  .time-header .mode-tabs {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    width: 100%;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    border: 0;
+    border-top: 1px solid var(--border-active);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--background) 94%, transparent);
+    box-shadow: 0 -14px 40px rgb(0 0 0 / 20%);
+    backdrop-filter: blur(18px);
+  }
   .time-header .wordmark { font-size: 1.25rem; }
   .time-header .section-code { font-size: .625rem; letter-spacing: .1em; }
 
   .mode-tab {
-    min-height: 40px;
+    position: relative;
+    min-height: 52px;
     padding: 8px;
+    border-radius: 4px;
   }
 
+  .mode-tab[aria-selected="true"] { background: var(--surface-selected); }
   .mode-tab .tab-icon { display: inline-flex; }
+  .mode-tab .tab-icon,
+  .mode-tab .tab-icon svg { width: 22px; height: 22px; }
   .mode-label { display: none; }
-  .tab-dot { margin-left: 3px; }
+  .tab-dot { position: absolute; top: 8px; left: calc(50% + 10px); width: 4px; height: 4px; margin: 0; }
 }
 
 @media (max-width: 600px) {
-  .site-shell { padding: 0 clamp(16px, 5vw, 20px); }
+  .site-shell { padding-inline: max(clamp(16px, 5vw, 20px), env(safe-area-inset-left)) max(clamp(16px, 5vw, 20px), env(safe-area-inset-right)); }
   .site-header { min-height: 72px; }
 
   footer { flex-direction: column; gap: 6px; min-height: 0; padding: 24px 0; }
 }
 
 @media (max-width: 380px) {
-  .site-shell { padding: 0 12px; }
+  .site-shell { padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
   .header-note { display: none; }
-  .time-header .mode-tabs { width: 148px; }
-  .mode-tab { min-height: 38px; padding: 6px; }
-  .tab-dot { margin-left: 2px; }
   .phase-button { padding: 7px; font-size: .8125rem; }
   .primary-button { min-width: 150px; padding: 12px 18px; }
 }

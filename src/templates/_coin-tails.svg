@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="tails-gold" x1="30" y1="10" x2="210" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#f4dfa1"/><stop offset=".28" stop-color="#b49a57"/><stop offset=".5" stop-color="#e7d391"/><stop offset=".78" stop-color="#87703c"/><stop offset="1" stop-color="#dec789"/></linearGradient>
+    <linearGradient id="tails-silver" x1="55" y1="35" x2="180" y2="210" gradientUnits="userSpaceOnUse"><stop stop-color="#e7e7df"/><stop offset=".45" stop-color="#acb1ac"/><stop offset=".72" stop-color="#d9dcd3"/><stop offset="1" stop-color="#7f8886"/></linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="117" fill="url(#tails-gold)" stroke="#ead8a2" stroke-width="2"/>
+  <circle cx="120" cy="120" r="111" stroke="#68552e" stroke-dasharray="1 3" stroke-width="3" opacity=".55"/>
+  <circle cx="120" cy="120" r="86" fill="url(#tails-silver)" stroke="#786b48" stroke-width="2"/>
+  <circle cx="120" cy="120" r="81" stroke="#f3f0da" opacity=".5"/>
+  <g stroke="#737b70" opacity=".6"><path d="M145 53 V184 M155 48 V191 M165 59 V181 M175 73 V163"/><path d="M137 72 L149 69 L158 79 L155 96 L172 107 L177 126 L166 130 L158 119 L146 123 L137 112 L127 113 L131 95 Z" fill="#8e978b"/></g>
+  <text x="97" y="154" text-anchor="middle" fill="#626b63" stroke="#e1e4d8" stroke-width=".7" font-family="Arial, sans-serif" font-size="119" font-weight="600">1</text>
+  <text x="145" y="153" fill="#586159" font-family="Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="1">EURO</text>
+  <path d="M78 177 H165" stroke="#697268"/>
+  <g fill="#65542f" font-family="Arial, sans-serif" font-size="11" text-anchor="middle"><text x="120" y="23">★</text><text x="170" y="37">★</text><text x="206" y="74">★</text><text x="219" y="124">★</text><text x="206" y="174">★</text><text x="170" y="210">★</text><text x="120" y="223">★</text><text x="70" y="210">★</text><text x="34" y="174">★</text><text x="21" y="124">★</text><text x="34" y="74">★</text><text x="70" y="37">★</text></g>
+</svg>

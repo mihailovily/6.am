@@ -1,0 +1,108 @@
+- var title = '6.am — Badge'
+- var description = 'Make an introduction. Create a private, personal conference badge for your phone.'
+doctype html
+html(lang="en", class="dark")
+  include _head.pug
+  body
+    .site-shell.badge-shell
+      header.site-header
+        a.wordmark(href=base, aria-label="6.am — home")
+          span 6
+            span.wordmark-dot .
+            | am
+        span.section-code BADGE / 06
+      main.badge-main
+        p.eyebrow 6.AM / BADGE
+        h1.badge-title Make an<br>introduction.
+        p.badge-intro A familiar face. A name to remember. Your next connection starts here.
+        .badge-workspace
+          form#badge-form.badge-editor
+            fieldset
+              legend 01 / YOUR BADGE
+              .badge-switch
+                label
+                  input(type="radio", name="template", value="card", checked)
+                  span Lanyard
+                label
+                  input(type="radio", name="template", value="minimal")
+                  span Minimal
+              each field in [{id:'name', label:'Name', placeholder:'Your name', max:100}, {id:'role', label:'Role · optional', placeholder:'What you do', max:100}, {id:'company', label:'Company · optional', placeholder:'Where you belong', max:100}, {id:'link', label:'QR link · optional', placeholder:'https://', max:500}]
+                label.badge-field
+                  span= field.label
+                  input(name=field.id, maxlength=field.max, placeholder=field.placeholder, required=field.id==='name', type=field.id==='link'?'url':'text')
+            fieldset
+              legend 02 / PHOTO
+              .badge-upload-actions
+                label.badge-file Choose photo
+                  input#badge-photo(type="file", accept="image/jpeg,image/png,image/webp")
+                label.badge-file Take photo
+                  input#badge-camera(type="file", accept="image/jpeg,image/png,image/webp", capture="user")
+                button.text-button#badge-remove(type="button") Remove
+              p.badge-note JPEG, PNG or WebP · up to 10 MB. Photos stay on this device.
+              #badge-crop(hidden)
+                canvas#badge-crop-preview(width="400", height="320", aria-label="Photo crop preview; use the sliders below to adjust")
+                each control in [{id:'zoom', label:'Zoom', min:1, max:3, step:.01}, {id:'panX', label:'Horizontal position', min:0, max:1, step:.01}, {id:'panY', label:'Vertical position', min:0, max:1, step:.01}]
+                  label.badge-field
+                    span= control.label
+                    input(type="range", name=control.id, min=control.min, max=control.max, step=control.step)
+            fieldset
+              legend 03 / PALETTE
+              .badge-colors
+                each color in [{id:'background', label:'Background'}, {id:'card', label:'Card'}, {id:'ink', label:'Text'}, {id:'lanyard', label:'Lanyard'}]
+                  label.badge-color(data-color=color.id)
+                    input(type="color", name=color.id)
+                    span= color.label
+              button.text-button#badge-palette(type="button") Restore 6.am palette
+            fieldset
+              legend 04 / LOCK SCREEN
+              label.badge-field
+                span Resolution
+                select#badge-device
+                  option(value="1179x2556") iPhone · 1179 × 2556
+                  option(value="1320x2868") iPhone large · 1320 × 2868
+                  option(value="1080x2400") Android · 1080 × 2400
+                  option(value="1440x3120") Android large · 1440 × 3120
+                  option(value="custom") Custom resolution
+              .badge-dimensions#badge-dimensions(hidden)
+                label.badge-field
+                  span Width · px
+                  input(name="width", type="number", min="320", max="2160", step="1")
+                label.badge-field
+                  span Height · px
+                  input(name="height", type="number", min="568", max="4320", step="1")
+              label.badge-field
+                span Badge size
+                input(name="scale", type="range", min="0.6", max="1", step="0.01")
+              label.badge-field
+                span Vertical position
+                input(name="position", type="range", min="0", max="1", step="0.01")
+              p.badge-note Dashed guides mark the space for your clock and lock-screen controls. They are not included in the image.
+            button.text-button#badge-reset(type="button") Reset badge
+            p.badge-note#badge-storage(role="status") Loading your saved badge…
+          aside.badge-preview-column(aria-label="Badge preview")
+            .badge-preview-heading
+              span.eyebrow YOUR LOCK SCREEN
+              span#badge-resolution
+            .badge-phone
+              canvas#badge-preview(aria-label="Your badge wallpaper preview")
+              .badge-guide.badge-guide-top(aria-hidden="true")
+              .badge-guide.badge-guide-bottom(aria-hidden="true")
+            p#badge-error.feedback.error(role="alert")
+            .badge-actions
+              button.primary-button#badge-show(type="button") Show badge ↗
+              button.text-button#badge-download(type="button") Download PNG ↓
+              button.text-button#badge-share(type="button", hidden) Share image
+            p#badge-feedback.feedback(role="status")
+            details.badge-guide-text
+              summary Set as your lock screen
+              p iPhone: download or share the image and save it to Photos. Open Settings → Wallpaper → Add New Wallpaper → Photos, then select your badge.
+              p Android: download the image, open it in Photos or Gallery, and choose Set as wallpaper → Lock screen. Names vary by device.
+              p Adjust the crop on your phone and keep clock widgets clear of the badge.
+      include _footer.pug
+    dialog#badge-presentation(aria-label="Badge presentation")
+      canvas#badge-display(aria-label="Your conference badge")
+      .badge-presentation-controls
+        button#badge-exit(type="button", aria-label="Exit fullscreen", title="Exit fullscreen") ×
+        span#badge-awake(role="status")
+        button#badge-retry(type="button") Retry keep awake
+    script(type="module", src="/src/scripts/badge.js")

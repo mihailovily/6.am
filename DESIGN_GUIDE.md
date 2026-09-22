@@ -4,7 +4,7 @@
 
 ## Характер и язык
 
-6.am — спокойный набор инструментов для продуктивной работы. Главная — оглавление; Time объединяет Clock, Stopwatch, Pomodoro и Settings. Tasks и Rituals представлены некликабельными строками `Coming soon`.
+6.am — спокойный набор инструментов для продуктивной работы. Главная — оглавление; Time объединяет Clock, Stopwatch, Pomodoro, Settings и Sounds. Tasks и Rituals представлены некликабельными строками `Coming soon`.
 
 Визуальный язык: почти чёрный фон, тонкие границы, светлая типографика, холодный голубой акцент, крупные показания времени. На главной доминирует двухстрочный `Less noise. More focus.`, в Time — цифры или форма настроек. Теней, градиентов и иллюстраций в текущих стилях нет. Капсула навигации сочетается с почти прямоугольными панелями и кнопками.
 
@@ -19,6 +19,7 @@
 | [base.css](src/styles/base.css) | Reset, базовый шрифт, общий фокус, disabled, hidden |
 | [components.css](src/styles/components.css) | Оболочка, логотип, вкладки, кнопки, footer |
 | [time.css](src/styles/pages/time.css) | Панели, формы, цифры, fullscreen, адаптивность |
+| [time-sounds.css](src/styles/pages/time-sounds.css) | Каталог Sounds, lofi-карточка, закреплённый мини-плеер |
 | [home.css](src/styles/pages/home.css) | Hero и список сервисов |
 | [home.pug](src/templates/home.pug), [time.pug](src/templates/time.pug) | Состав и семантика интерфейса |
 | [time.js](src/scripts/time.js) | Вкладки, подписи, состояния таймеров, формы и SVG действий |
@@ -112,7 +113,7 @@
 | --- | --- |
 | Логотип | Ссылка домой с `aria-label`; header главной — partial, Time — отдельная разметка |
 | Сервис | Time — ссылка всей строкой; будущие сервисы — `article` со статусом |
-| Вкладки | `tablist`, ссылки с `role="tab"`, `aria-controls`; selected — `aria-selected="true"`, заливка и светлый текст |
+| Вкладки | `tablist`, ссылки с `role="tab"`, `aria-controls`; selected — `aria-selected="true"`, заливка и светлый текст; Sounds имеет running dot при активном миксе |
 | Фазы | Кнопки в `role="group"`; `.selected` и `aria-pressed`, заливка и рамка |
 | Primary | От 200×54px, padding `14px 26px`, светлая заливка; hover белый; текст меняется по состоянию |
 | Icon / text button | Высота от 48px, рамка 1px; icon шириной от 48px; отдельного hover-background нет |
@@ -124,7 +125,7 @@
 | Running dot | Круг 5px рядом с вкладкой запущенного таймера |
 | Empty / laps | Подсказка до появления кругов; затем таблица Lap / Lap time / Total |
 
-После инициализации JS `/time` открывает Clock, hash выбирает режим. Исходный Pug до инициализации показывает Pomodoro. JS синхронизирует `hidden`, `aria-selected` и roving `tabindex`; стрелки влево/вправо, Home/End переключают и фокусируют вкладки.
+После инициализации JS `/time` открывает Clock, hash выбирает режим, включая `#sounds`. Исходный Pug до инициализации показывает Pomodoro. JS синхронизирует `hidden`, `aria-selected` и roving `tabindex`; стрелки влево/вправо, Home/End переключают и фокусируют вкладки.
 
 На ширине до 760px Stopwatch сначала показывает только Start, при работе — Pause и Lap, на паузе — Reset и Resume. Подсказка `Use the flag to record a lap.` остаётся и до появления Lap — это дефект из ревью, а не рекомендуемое правило.
 
@@ -137,7 +138,7 @@ SVG — без заливки, `currentColor`, круглые концы и со
 | Ширина | Изменение |
 | --- | --- |
 | Более 760px | Текстовые вкладки, панель от 580px, Settings в две колонки, четыре числовых поля в ряд |
-| До 760px | Shell 20px, header 72px; вкладки-иконки, капсула 160px, вкладка от 40px; высота панелей по контенту; Settings в одну колонку, поля 2×2, save-кнопки на всю ширину от 52px |
+| До 760px | Shell 20px, header 72px; пять вкладок-иконок, капсула 178px; высота панелей по контенту; Settings в одну колонку, поля 2×2, save-кнопки на всю ширину от 52px; Sounds — две колонки |
 | До 760px: цифры | Pomodoro `clamp(4.75rem, 19vw, 7.5rem)`; Clock `clamp(3.5rem, 17vw, 4.25rem)`; Stopwatch `clamp(2.3rem, 10vw, 4.5rem)` |
 | До 600px | Shell `clamp(16px, 5vw, 20px)`; боковой padding панелей 16px; footer в колонку; поля от 48px; фазы делят ширину поровну; сервисы от 76px |
 | До 600px: цифры | Pomodoro `clamp(4.5rem, 20vw, 6rem)`; Stopwatch `clamp(2.2rem, 10vw, 3.5rem)`; Clock без изменения |

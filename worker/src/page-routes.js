@@ -1,4 +1,6 @@
 export const cleanPageRoutes = {
+  '/badge': '/badge.html',
+  '/coinflip': '/coinflip.html',
   '/time': '/time.html',
   '/life': '/life.html',
   '/qr': '/qr.html',

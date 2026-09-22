@@ -1,5 +1,6 @@
 import { encryptNote, proofFor } from './note-crypto.js';
 import { readApiResponse } from './note-api.js';
+import { networkFailure } from './network-status.js';
 
 const form = /** @type {HTMLFormElement} */ (document.querySelector('#note-form'));
 const feedback = /** @type {HTMLParagraphElement} */ (document.querySelector('#note-feedback'));
@@ -59,7 +60,7 @@ form.addEventListener('submit', async (event) => {
     } catch {
       setFeedback(`Note created. Copy this link: ${link}`);
     }
-  } catch (error) { setFeedback(error instanceof Error ? error.message : 'Could not create this note.', true); }
+  } catch (error) { setFeedback(networkFailure(error instanceof Error ? error.message : 'Could not create this note.'), true); }
   finally { button.disabled = false; }
 });
 

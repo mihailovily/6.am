@@ -3,6 +3,7 @@ import { access, readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 import { normalizeBase, pages } from '../pages.config.js';
+import { ambientSounds, lofiTracks } from '../src/scripts/sound-catalog.js';
 
 const root = resolve('dist');
 const baseArgument = process.argv.indexOf('--base');
@@ -14,7 +15,12 @@ const contentTypes = new Map([
   ['.css', 'text/css'],
   ['.html', 'text/html'],
   ['.js', 'text/javascript'],
+  ['.flac', 'audio/flac'],
+  ['.mp3', 'audio/mpeg'],
+  ['.png', 'image/png'],
   ['.svg', 'image/svg+xml'],
+  ['.wav', 'audio/wav'],
+  ['.webmanifest', 'application/manifest+json'],
   ['.woff2', 'font/woff2']
 ]);
 
@@ -62,7 +68,12 @@ await new Promise((resolveListening) => server.once('listening', resolveListenin
 
 try {
   const { port } = server.address();
-  const assets = new Set([...pagePaths, ...publicRoutes].map((page) => `${base}${page.replace(/^\//, '')}`));
+  const audioAssets = [
+    ...ambientSounds.map(({ file }) => `/sounds/ambient/${file}`),
+    ...lofiTracks.map(({ file }) => `/sounds/lofi/${file}`)
+  ];
+  const pwaAssets = ['/manifest.webmanifest', '/sw.js', '/apple-touch-icon.png', '/icons/6am-192.png', '/icons/6am-512.png', '/icons/6am-maskable-512.png'];
+  const assets = new Set([...pagePaths, ...publicRoutes, ...audioAssets, ...pwaAssets].map((page) => `${base}${page.replace(/^\//, '')}`));
 
   for (const page of assets) {
     if (expectedContentType(page) !== 'text/html') continue;
@@ -84,6 +95,18 @@ try {
     if (actual !== expected) {
       throw new Error(`${pathname} returned ${actual ?? 'no Content-Type'}, expected ${expected}`);
     }
+  }
+
+  const manifest = JSON.parse(await readFile(fileForUrl(`${base}manifest.webmanifest`), 'utf8'));
+  if (manifest.start_url !== base || manifest.scope !== base || manifest.display !== 'standalone') {
+    throw new Error('PWA manifest does not match the configured deployment base or standalone mode.');
+  }
+  const serviceWorker = await readFile(fileForUrl(`${base}sw.js`), 'utf8');
+  const precacheMatch = serviceWorker.match(/const PRECACHE = (\[[^;]+\]);/);
+  if (!precacheMatch) throw new Error('Service worker has no readable precache list.');
+  const precache = JSON.parse(precacheMatch[1]);
+  if (precache.some((url) => url.includes('/api/') || url.includes('sounds/ambient/') || url.includes('sounds/lofi/'))) {
+    throw new Error('Service worker must not precache API responses or the ambient audio catalog.');
   }
 
   console.log(`Smoke check passed at ${base}: ${pagePaths.length} pages, ${assets.size - pagePaths.length} local references.`);
