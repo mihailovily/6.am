@@ -1,10 +1,10 @@
-import { ambientSounds, liveRadio, lofiTracks, soundGroups } from './sound-catalog.js';
+import { ambientSounds, lofiTracks, soundGroups } from './sound-catalog.js';
 import { createSoundEngine } from './sound-engine.js';
 import { defaultSoundscape, normalizeSoundscape, searchSounds, soundscapeStorageKey } from './sound-domain.js';
 
-/** @typedef {{version:1,master:number,fadeSeconds:number,selected:Record<string, number>,lofiMode:'local'|'live',lofiVolume:number,lofiEnabled:boolean}} SoundscapeConfig */
+/** @typedef {{version:2,master:number,fadeSeconds:number,selected:Record<string, number>,lofiVolume:number,lofiEnabled:boolean}} SoundscapeConfig */
 /** @typedef {{id:string,name:string,group:string,icon:string,file:string,tags:string[],mode?:'loop'|'intermittent',sourceUrl:string,license:string}} CatalogSound */
-/** @typedef {{type:string,id?:string,message?:string,active?:string[],paused?:boolean,lofiPlaying?:boolean,lofiIndex?:number}} EngineEvent */
+/** @typedef {{type:string,id?:string,message?:string,active?:string[],paused?:boolean,lofiPlaying?:boolean,lofiPaused?:boolean,lofiIndex?:number}} EngineEvent */
 
 /** @param {string} selector */
 const $ = (selector) => /** @type {HTMLElement} */ (document.querySelector(selector));
@@ -12,6 +12,8 @@ const byId = new Map(ambientSounds.map((sound) => [sound.id, sound]));
 let config = /** @type {SoundscapeConfig} */ (readConfig());
 let configuredButStopped = Object.keys(config.selected).length > 0 || config.lofiEnabled;
 let cardStates = new Map();
+const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7v10M15 7v10"/></svg>';
 
 function readConfig() {
   try { return normalizeSoundscape(JSON.parse(localStorage.getItem(soundscapeStorageKey) || 'null'), ambientSounds.map(({ id }) => id)); }
@@ -78,7 +80,7 @@ function onEngineChange(event) {
   }
   if (event.type === 'error') setStatus(event.message || 'Sound playback failed.', true);
   syncCards();
-  renderDock();
+  renderMixControls();
   renderLofi();
 }
 
@@ -107,26 +109,40 @@ function syncCards() {
   });
 }
 
-function renderDock() {
+function renderMixControls() {
   const snapshot = engine.snapshot();
-  const count = Object.keys(config.selected).length + (config.lofiEnabled ? 1 : 0);
-  $('#sound-dock').hidden = count === 0;
-  $('#sound-dock-summary').textContent = count ? `${count} layer${count === 1 ? '' : 's'} in your mix` : 'No sounds selected';
-  const toggle = /** @type {HTMLButtonElement} */ ($('#sound-dock-toggle'));
-  toggle.textContent = snapshot.paused || configuredButStopped ? '▶' : 'Ⅱ';
-  toggle.setAttribute('aria-label', snapshot.paused || configuredButStopped ? 'Resume soundscape' : 'Pause soundscape');
-  /** @type {HTMLInputElement} */ ($('#dock-master-volume')).value = String(config.master);
-  $('#dock-master-value').textContent = `${config.master}%`;
+  const names = Object.keys(config.selected).map((id) => byId.get(id)?.name).filter(Boolean);
+  if (config.lofiEnabled) names.push(snapshot.lofiIndex >= 0 ? lofiTracks[snapshot.lofiIndex].name : 'Local radio');
+  const count = names.length;
+  const summary = count > 2 ? `${names.slice(0, 2).join(' + ')} + ${count - 2} more` : names.join(' + ');
+  $('#sound-mix-summary').textContent = summary || 'No sounds selected';
+  $('#sound-mix-state').textContent = !count
+    ? 'Choose a scene below'
+    : configuredButStopped ? 'Ready to play'
+      : snapshot.paused ? 'Paused'
+        : snapshot.lofiPaused && !snapshot.active.length ? 'Radio paused' : `${count} active layer${count === 1 ? '' : 's'}`;
+  const toggle = /** @type {HTMLButtonElement} */ ($('#sound-mix-toggle'));
+  const clear = /** @type {HTMLButtonElement} */ ($('#sound-mix-clear'));
+  const hasAudibleLayer = snapshot.active.length > 0 || (snapshot.lofiPlaying && !snapshot.lofiPaused);
+  const shouldResume = snapshot.paused || configuredButStopped || !hasAudibleLayer;
+  toggle.innerHTML = shouldResume ? playIcon : pauseIcon;
+  toggle.disabled = count === 0;
+  clear.disabled = count === 0;
+  const label = shouldResume ? 'Resume soundscape' : 'Pause soundscape';
+  toggle.setAttribute('aria-label', label);
+  toggle.title = label;
 }
 
 function renderLofi() {
   const snapshot = engine.snapshot();
   const track = snapshot.lofiIndex >= 0 ? lofiTracks[snapshot.lofiIndex] : null;
-  $('#lofi-now').textContent = config.lofiMode === 'live' ? liveRadio.name : track?.name || 'Chillhop & Cozy Beats';
-  $('#lofi-source').textContent = config.lofiMode === 'live' ? 'YouTube live stream' : `${lofiTracks.length} CC0 tracks · endless shuffle`;
+  $('#lofi-now').textContent = track?.name || 'Chillhop & Cozy Beats';
+  $('#lofi-source').textContent = track ? `${track.artist} · CC0 1.0` : `${lofiTracks.length} CC0 tracks · endless shuffle`;
   const play = /** @type {HTMLButtonElement} */ ($('#lofi-play'));
-  play.textContent = snapshot.lofiPlaying ? 'Pause radio' : config.lofiEnabled ? 'Resume radio' : 'Play radio';
-  $('#youtube-live-wrap').hidden = config.lofiMode !== 'live';
+  const paused = snapshot.lofiPaused || snapshot.paused;
+  /** @type {HTMLElement} */ (play.querySelector('.transport-icon')).innerHTML = snapshot.lofiPlaying && !paused ? pauseIcon : playIcon;
+  $('#lofi-play-label').textContent = snapshot.lofiPlaying && !paused ? 'Pause radio' : config.lofiEnabled ? 'Resume radio' : 'Play radio';
+  /** @type {HTMLButtonElement} */ ($('#lofi-next')).disabled = !snapshot.lofiPlaying || paused;
 }
 
 async function resumeConfiguredMix() {
@@ -135,9 +151,7 @@ async function resumeConfiguredMix() {
     const sound = byId.get(id);
     return sound ? engine.startAmbient(sound, volume) : Promise.resolve(false);
   });
-  if (config.lofiEnabled) tasks.push(config.lofiMode === 'live'
-    ? engine.startLive('youtube-player', liveRadio.videoId)
-    : engine.startLofi());
+  if (config.lofiEnabled) tasks.push(engine.startLofi());
   await Promise.all(tasks);
 }
 
@@ -158,7 +172,7 @@ async function toggleSound(id) {
   }
   configuredButStopped = false;
   saveConfig();
-  renderDock();
+  renderMixControls();
   syncCards();
 }
 
@@ -199,16 +213,7 @@ $('#master-volume').addEventListener('input', (event) => {
   $('#master-volume-value').textContent = `${config.master}%`;
   engine.setMaster(config.master);
   saveConfig();
-  renderDock();
-});
-
-$('#dock-master-volume').addEventListener('input', (event) => {
-  config.master = Number(/** @type {HTMLInputElement} */ (event.target).value);
-  /** @type {HTMLInputElement} */ ($('#master-volume')).value = String(config.master);
-  $('#master-volume-value').textContent = `${config.master}%`;
-  engine.setMaster(config.master);
-  saveConfig();
-  renderDock();
+  renderMixControls();
 });
 
 $('#fade-seconds').addEventListener('input', (event) => {
@@ -218,75 +223,58 @@ $('#fade-seconds').addEventListener('input', (event) => {
   saveConfig();
 });
 
-document.querySelectorAll('[name="lofi-mode"]').forEach((element) => element.addEventListener('change', () => {
-  config.lofiMode = /** @type {HTMLInputElement} */ (element).value === 'live' ? 'live' : 'local';
-  engine.stopLofi();
-  config.lofiEnabled = false;
-  saveConfig();
-  renderLofi();
-  renderDock();
-}));
-
 $('#lofi-play').addEventListener('click', async () => {
   const snapshot = engine.snapshot();
-  if (snapshot.lofiPlaying) {
-    engine.stopLofi();
-    config.lofiEnabled = false;
+  if (snapshot.lofiPlaying && !snapshot.lofiPaused && !snapshot.paused) {
+    engine.pauseLofi();
+  } else if (snapshot.paused) {
+    await engine.resumeAll();
+  } else if (snapshot.lofiPlaying) {
+    await engine.resumeLofi();
   } else {
     config.lofiEnabled = true;
-    const played = config.lofiMode === 'live'
-      ? await engine.startLive('youtube-player', liveRadio.videoId)
-      : await engine.startLofi();
+    const played = await engine.startLofi();
     if (!played) config.lofiEnabled = false;
   }
   configuredButStopped = false;
   saveConfig();
   renderLofi();
-  renderDock();
+  renderMixControls();
 });
 
-$('#lofi-next').addEventListener('click', () => { if (config.lofiMode === 'local') void engine.advanceLofi(false); });
+$('#lofi-next').addEventListener('click', () => { void engine.advanceLofi(false); });
 $('#lofi-volume').addEventListener('input', (event) => {
   config.lofiVolume = Number(/** @type {HTMLInputElement} */ (event.target).value);
   $('#lofi-volume-value').textContent = `${config.lofiVolume}%`;
   engine.setLofiVolume(config.lofiVolume);
   saveConfig();
 });
-$('#lofi-fallback').addEventListener('click', () => {
-  const radio = /** @type {HTMLInputElement} */ (document.querySelector('[name="lofi-mode"][value="local"]'));
-  radio.checked = true;
-  radio.dispatchEvent(new Event('change'));
-  void /** @type {HTMLButtonElement} */ ($('#lofi-play')).click();
-});
-
-$('#sound-dock-toggle').addEventListener('click', () => {
+$('#sound-mix-toggle').addEventListener('click', () => {
   const snapshot = engine.snapshot();
   if (snapshot.paused) void engine.resumeAll();
   else if (configuredButStopped) void resumeConfiguredMix();
+  else if (snapshot.lofiPlaying && snapshot.lofiPaused && !snapshot.active.length) void engine.resumeLofi();
   else engine.pauseAll();
 });
 
-$('#sound-dock-stop').addEventListener('click', () => {
+$('#sound-mix-clear').addEventListener('click', () => {
   engine.stopAll();
   config.selected = {};
   config.lofiEnabled = false;
   configuredButStopped = false;
   saveConfig();
   renderCatalog(/** @type {HTMLInputElement} */ ($('#sound-search')).value);
-  renderDock();
+  renderMixControls();
+  renderLofi();
 });
 
-export function pauseLiveForFullscreen() { if (config.lofiMode === 'live') engine.pauseLiveForFullscreen(); }
-
 /** @type {HTMLInputElement} */ ($('#master-volume')).value = String(config.master);
-/** @type {HTMLInputElement} */ ($('#dock-master-volume')).value = String(config.master);
 /** @type {HTMLInputElement} */ ($('#fade-seconds')).value = String(config.fadeSeconds);
 /** @type {HTMLInputElement} */ ($('#lofi-volume')).value = String(config.lofiVolume);
-/** @type {HTMLInputElement} */ (document.querySelector(`[name="lofi-mode"][value="${config.lofiMode}"]`)).checked = true;
 $('#master-volume-value').textContent = `${config.master}%`;
 $('#fade-value').textContent = `${config.fadeSeconds}s`;
 $('#lofi-volume-value').textContent = `${config.lofiVolume}%`;
 renderCatalog();
-renderDock();
+renderMixControls();
 renderLofi();
-if (configuredButStopped) setStatus('Your saved mix is ready. Press Resume in the player when you want to hear it.');
+if (configuredButStopped) setStatus('Your saved mix is ready. Press Play in the mix controls when you want to hear it.');

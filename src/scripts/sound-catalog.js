@@ -63,8 +63,6 @@ export const lofiTracks = lofiNames.map(([id, name]) => ({
 }));
 
 export const soundGroups = ['Life', 'Places', 'Raw Noise', 'Things', 'Travel', 'Weather'];
-export const liveRadio = { provider: 'YouTube', name: 'Lofi Girl live', videoId: 'X4VbdwhkE10' };
-
 /** @param {string} folder @param {string} file */
 export function publicSoundUrl(folder, file) {
   return new URL(`sounds/${folder}/${file}`, new URL(import.meta.env.BASE_URL, location.origin)).href;

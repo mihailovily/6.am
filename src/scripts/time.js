@@ -14,7 +14,7 @@ import {
   saveJson,
   validPomodoroSettings
 } from './time-domain.js';
-import { pauseLiveForFullscreen } from './soundscape.js';
+import './soundscape.js';
 
 /** @typedef {import('./time-domain.js').Settings} Settings */
 /** @typedef {import('./time-domain.js').Phase} Phase */
@@ -244,7 +244,6 @@ function syncFullscreenControls() {
 }
 
 async function enterFullscreen() {
-  pauseLiveForFullscreen();
   try {
     await document.documentElement.requestFullscreen();
   } catch {

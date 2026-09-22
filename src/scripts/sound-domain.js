@@ -1,6 +1,6 @@
 export const soundscapeStorageKey = '6am-soundscape';
 
-/** @typedef {{version:1,master:number,fadeSeconds:number,selected:Record<string, number>,lofiMode:'local'|'live',lofiVolume:number,lofiEnabled:boolean}} SoundscapeConfig */
+/** @typedef {{version:2,master:number,fadeSeconds:number,selected:Record<string, number>,lofiVolume:number,lofiEnabled:boolean}} SoundscapeConfig */
 /** @typedef {{name:string,group:string,tags?:string[]}} SearchableSound */
 
 /** @param {unknown} value @param {number} [min] @param {number} [max] */
@@ -10,7 +10,7 @@ export function clamp(value, min = 0, max = 100) {
 
 /** @returns {SoundscapeConfig} */
 export function defaultSoundscape() {
-  return { version: 1, master: 65, fadeSeconds: 2, selected: {}, lofiMode: 'local', lofiVolume: 55, lofiEnabled: false };
+  return { version: 2, master: 65, fadeSeconds: 2, selected: {}, lofiVolume: 55, lofiEnabled: false };
 }
 
 /** @param {any} value @param {string[]} [validIds] @returns {SoundscapeConfig} */
@@ -25,11 +25,10 @@ export function normalizeSoundscape(value, validIds = []) {
     }
   }
   return {
-    version: 1,
+    version: 2,
     master: Math.round(clamp(value.master, 0, 100)),
     fadeSeconds: clamp(value.fadeSeconds, 0, 30),
     selected,
-    lofiMode: value.lofiMode === 'live' ? 'live' : 'local',
     lofiVolume: Math.round(clamp(value.lofiVolume, 0, 100)),
     lofiEnabled: value.lofiEnabled === true
   };

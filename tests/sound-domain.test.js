@@ -12,11 +12,10 @@ test('normalizes a persisted soundscape without restoring playback state', () =>
     lofiVolume: 41,
     lofiEnabled: true
   }, ['rain', 'birds']), {
-    version: 1,
+    version: 2,
     master: 100,
     fadeSeconds: 0,
     selected: { rain: 72, birds: 0 },
-    lofiMode: 'live',
     lofiVolume: 41,
     lofiEnabled: true
   });

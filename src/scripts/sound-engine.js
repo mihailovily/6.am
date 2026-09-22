@@ -5,7 +5,7 @@ const fadeStepMs = 40;
 
 /** @typedef {{id:string,name:string,file:string,mode?:'loop'|'intermittent'}} EngineAmbientSound */
 /** @typedef {{id:string,name:string,file:string}} EngineLofiTrack */
-/** @typedef {{type:string,id?:string,message?:string,active?:string[],paused?:boolean,lofiPlaying?:boolean,lofiIndex?:number}} EngineEvent */
+/** @typedef {{type:string,id?:string,message?:string,active?:string[],paused?:boolean,lofiPlaying?:boolean,lofiPaused?:boolean,lofiIndex?:number}} EngineEvent */
 /** @typedef {{player:HTMLAudioElement,volume:number,cancelFade:()=>void,sound:EngineAmbientSound}} AmbientEntry */
 
 /** @param {HTMLAudioElement} player @param {number} target @param {number} seconds @param {()=>void} [onDone] */
@@ -41,10 +41,8 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
   let activeLofi = 0;
   let lofiVolume = 55;
   let lofiPlaying = false;
+  let lofiPaused = false;
   let crossfading = false;
-  let youtubePlayer = /** @type {any} */ (null);
-  let youtubeReady = false;
-  let youtubeScriptPromise = /** @type {Promise<any> | undefined} */ (undefined);
 
   lofiPlayers.forEach((player) => {
     player.preload = 'auto';
@@ -57,7 +55,7 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
   });
 
   function emit() {
-    onChange({ type: 'state', active: [...players.keys()], paused, lofiPlaying, lofiIndex });
+    onChange({ type: 'state', active: [...players.keys()], paused, lofiPlaying, lofiPaused, lofiIndex });
   }
 
   /** @param {number} volume */
@@ -140,7 +138,6 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
     master = value;
     for (const entry of players.values()) entry.player.volume = targetVolume(entry.volume);
     lofiPlayers.forEach((player, index) => { if (index === activeLofi) player.volume = targetVolume(lofiVolume); });
-    if (youtubeReady) youtubePlayer.setVolume(Math.round(targetVolume(lofiVolume) * 100));
   }
 
   /** @param {number} value */
@@ -159,6 +156,7 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
       await next.play();
       lofiIndex = index;
       lofiPlaying = true;
+      lofiPaused = false;
       paused = false;
       if (crossfade && next !== previous) {
         crossfading = true;
@@ -177,7 +175,7 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
       return true;
     } catch {
       lofiPlaying = false;
-      onChange({ type: 'error', message: 'Local radio is unavailable. Try the live stream.' });
+      onChange({ type: 'error', message: 'This local radio track could not be played. Try the next track.' });
       emit();
       return false;
     }
@@ -185,6 +183,7 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
 
   async function startLofi() {
     if (lofiPlaying && paused) return resumeAll();
+    if (lofiPlaying && lofiPaused) return resumeLofi();
     return playLofiAt(nextShuffleIndex(lofi.length, lofiIndex));
   }
 
@@ -195,17 +194,36 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
 
   function stopLofi() {
     lofiPlayers.forEach((player) => { player.pause(); player.removeAttribute('src'); player.load(); });
-    if (youtubeReady) youtubePlayer.stopVideo();
     lofiPlaying = false;
+    lofiPaused = false;
     crossfading = false;
     emit();
+  }
+
+  function pauseLofi() {
+    if (!lofiPlaying) return;
+    lofiPlayers[activeLofi].pause();
+    lofiPaused = true;
+    emit();
+  }
+
+  async function resumeLofi() {
+    if (!lofiPlaying || !lofiPlayers[activeLofi].src) return false;
+    try {
+      await lofiPlayers[activeLofi].play();
+      lofiPaused = false;
+      emit();
+      return true;
+    } catch {
+      onChange({ type: 'error', message: 'The local radio could not resume.' });
+      return false;
+    }
   }
 
   function pauseAll() {
     paused = true;
     for (const [id, entry] of players) { clearIntermittent(id); entry.player.pause(); }
     lofiPlayers.forEach((player) => player.pause());
-    if (youtubeReady) youtubePlayer.pauseVideo();
     emit();
   }
 
@@ -214,9 +232,9 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
       onChange({ type: 'error', id: sound.id, message: `${sound.name} could not resume.` });
     }));
     if (lofiPlaying && lofiPlayers[activeLofi].src) attempts.push(lofiPlayers[activeLofi].play().catch(() => {}));
-    if (youtubeReady && lofiPlaying) youtubePlayer.playVideo();
     await Promise.all(attempts);
     paused = false;
+    lofiPaused = false;
     emit();
     return true;
   }
@@ -228,59 +246,11 @@ export function createSoundEngine({ ambient, lofi, onChange = () => {} }) {
     emit();
   }
 
-  function loadYouTubeApi() {
-    const browserWindow = /** @type {any} */ (window);
-    if (browserWindow.YT?.Player) return Promise.resolve(browserWindow.YT);
-    if (youtubeScriptPromise) return youtubeScriptPromise;
-    youtubeScriptPromise = new Promise((resolve, reject) => {
-      const previous = browserWindow.onYouTubeIframeAPIReady;
-      browserWindow.onYouTubeIframeAPIReady = () => { previous?.(); resolve(browserWindow.YT); };
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      script.onerror = reject;
-      document.head.append(script);
-    });
-    return youtubeScriptPromise;
-  }
-
-  /** @param {string} container @param {string} videoId */
-  async function startLive(container, videoId) {
-    stopLofi();
-    try {
-      const YT = await loadYouTubeApi();
-      if (!youtubePlayer) {
-        youtubePlayer = await new Promise((resolve) => {
-          const player = new YT.Player(container, {
-            width: 320, height: 200, videoId,
-            host: 'https://www.youtube-nocookie.com',
-            playerVars: { autoplay: 1, controls: 1, playsinline: 1 },
-            events: { onReady: () => resolve(player), onError: () => onChange({ type: 'error', message: 'The live stream is unavailable. Play local radio instead.' }) }
-          });
-        });
-      } else youtubePlayer.loadVideoById(videoId);
-      youtubeReady = true;
-      youtubePlayer.setVolume(Math.round(targetVolume(lofiVolume) * 100));
-      youtubePlayer.playVideo();
-      lofiPlaying = true;
-      paused = false;
-      emit();
-      return true;
-    } catch {
-      onChange({ type: 'error', message: 'The live stream could not load. Play local radio instead.' });
-      return false;
-    }
-  }
-
   /** @param {number} value */
   function setLofiVolume(value) {
     lofiVolume = value;
     lofiPlayers[activeLofi].volume = targetVolume(value);
-    if (youtubeReady) youtubePlayer.setVolume(Math.round(targetVolume(value) * 100));
   }
 
-  function pauseLiveForFullscreen() {
-    if (youtubeReady) youtubePlayer.pauseVideo();
-  }
-
-  return { startAmbient, stopAmbient, setAmbientVolume, setMaster, setFade, startLofi, advanceLofi, stopLofi, startLive, setLofiVolume, pauseAll, resumeAll, stopAll, pauseLiveForFullscreen, snapshot: () => ({ active: [...players.keys()], paused, lofiPlaying, lofiIndex }) };
+  return { startAmbient, stopAmbient, setAmbientVolume, setMaster, setFade, startLofi, advanceLofi, stopLofi, pauseLofi, resumeLofi, setLofiVolume, pauseAll, resumeAll, stopAll, snapshot: () => ({ active: [...players.keys()], paused, lofiPlaying, lofiPaused, lofiIndex }) };
 }

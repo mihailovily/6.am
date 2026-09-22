@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import test from 'node:test';
 import { ambientSounds, lofiTracks, soundGroups } from '../src/scripts/sound-catalog.js';
 
@@ -16,4 +16,15 @@ test('ships the complete soundscape catalog and every referenced local file', as
       assert.ok(metadata.size < 25 * 1024 * 1024, `${entry.file} must fit the static asset limit`);
     }
   }
+});
+
+test('keeps Lofi Girl external and does not ship an embedded YouTube player', async () => {
+  const [template, engine] = await Promise.all([
+    readFile(new URL('../src/templates/time.pug', import.meta.url), 'utf8'),
+    readFile(new URL('../src/scripts/sound-engine.js', import.meta.url), 'utf8')
+  ]);
+  assert.match(template, /href="https:\/\/www\.youtube\.com\/live\/rFZHOHl-L8A\?si=UifpepfRL8Pp8Nft"/);
+  assert.match(template, /target="_blank", rel="noopener noreferrer"/);
+  assert.doesNotMatch(template, /youtube-player|youtube-live-wrap/);
+  assert.doesNotMatch(engine, /iframe_api|YT\.Player|startLive/);
 });
