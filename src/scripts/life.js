@@ -1,4 +1,5 @@
 import { DEFAULT_LIFE_COLORS, LIFE_COLOR_KEYS, LIFE_PALETTES, localDate, mixHexColors, normalizeHexColor, normalizeLifeSettings, paletteForColors, parseWallpaperRequest } from './life-domain.js';
+import { networkFailure } from './network-status.js';
 
 const STORAGE_KEY = '6am-life-settings-v1';
 
@@ -436,7 +437,7 @@ form.addEventListener('change', () => { customSize.hidden = deviceSelect.value !
 preview.addEventListener('load', () => { previewLoading.hidden = true; });
 preview.addEventListener('error', () => {
   previewLoading.hidden = true;
-  errorOutput.textContent = 'The wallpaper could not be rendered. Check the settings and try again.';
+  errorOutput.textContent = networkFailure('The wallpaper could not be rendered. Check the settings and try again.');
 });
 copyButton.addEventListener('click', () => copyText(currentWallpaperUrl, 'Wallpaper URL copied.'));
 downloadButton.addEventListener('click', async () => {
@@ -453,7 +454,7 @@ downloadButton.addEventListener('click', async () => {
     URL.revokeObjectURL(objectUrl);
     feedback.textContent = 'Wallpaper downloaded.';
   } catch (error) {
-    feedback.textContent = error instanceof Error ? error.message : 'Download failed.';
+    feedback.textContent = networkFailure(error instanceof Error ? error.message : 'Download failed.');
   }
 });
 

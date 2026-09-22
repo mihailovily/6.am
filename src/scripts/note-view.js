@@ -1,5 +1,6 @@
 import { decryptNote, proofFor } from './note-crypto.js';
 import { readApiResponse } from './note-api.js';
+import { networkFailure } from './network-status.js';
 
 const feedback = /** @type {HTMLParagraphElement} */ (document.querySelector('#reveal-feedback'));
 const button = /** @type {HTMLButtonElement} */ (document.querySelector('#reveal-note'));
@@ -29,5 +30,5 @@ button.addEventListener('click', async () => {
     output.hidden = false;
     button.hidden = true;
     setFeedback(payload.singleUse ? 'This note has now been destroyed.' : 'This note remains available until it expires.');
-  } catch (error) { setFeedback(error instanceof Error ? error.message : 'This note is unavailable.', true); button.disabled = false; }
+  } catch (error) { setFeedback(networkFailure(error instanceof Error ? error.message : 'This note is unavailable.'), true); button.disabled = false; }
 });
